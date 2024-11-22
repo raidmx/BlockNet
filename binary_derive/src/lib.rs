@@ -107,14 +107,7 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
     let mut write_stream = proc_macro2::TokenStream::new();
     let mut read_stream = proc_macro2::TokenStream::new();
 
-    // We maintain a list of IO types for which we execute a different function using the IO trait
-    // rather than executing the Binary trait on such types.
-    let io_types = vec![
-        "i8", "u8", "u16", "i16", "b16", "n16",
-        "u24", "u32", "i32", "b32", "n32", "v32",
-        "w32", "u64", "i64", "b64", "n64", "v64",
-        "w64", "f32", "f64", "d32", "d64"
-    ];
+    let mut extra_stream = proc_macro2::TokenStream::new();
 
     match &mut input.data {
         Data::Struct(struct_data) => {
@@ -133,10 +126,10 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
 
                     impl binary::Binary for #ident {
                         #[inline]
-                        fn encode(&mut self, writer: &mut binary::Writer) {}
+                        fn serialize(&self, writer: &mut bytes::BytesMut) {}
 
                         #[inline]
-                        fn decode(reader: &mut binary::Reader) -> Self {}
+                        fn deserialize(reader: &mut bytes::Bytes) -> Self {}
                     }
                 }.into(),
             };
@@ -207,14 +200,11 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
                                         );
                                     }
 
-                                    read_body_stream.append_all(quote! {
-                                        let mut #len_var_name = Default::default();
-                                        reader.#field_type(&mut #len_var_name);
-                                    });
+                                    read_body_stream.append_all(quote!(let #len_var_name = #field_type::deserialize(reader);));
 
                                     write_stream.append_all(quote!{
-                                        let mut len = self.#vec_name.len() as #field_type;
-                                        writer.#field_type(&mut len);
+                                        let len = #field_type::from_usize(self.#vec_name.len());
+                                        len.serialize(writer);
                                     });
 
                                     vector_size_map.insert(vec_name.to_string());
@@ -248,14 +238,11 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
                                     let len_var_name = format_ident!("_{}_len", field_ident);
                                     let field_type = syn::parse2::<Type>(type_name.to_token_stream()).unwrap();
 
-                                    read_body_stream.append_all(quote! {
-                                        let mut #len_var_name = Default::default();
-                                        reader.#type_name(&mut #len_var_name);
-                                    });
+                                    read_body_stream.append_all(quote!(let #len_var_name = #field_type::deserialize(reader);));
 
                                     write_stream.append_all(quote!{
-                                        let mut len = self.#field_ident.len() as #field_type;
-                                        writer.#type_name(&mut len);
+                                        let len = #field_type::from_usize(self.#field_ident.len());
+                                        len.serialize(writer);
                                     });
 
                                     vector_size_map.insert(field_ident.to_string());
@@ -274,9 +261,9 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
                         "skip" => {
                             field.attrs.remove(attr_i);
 
-                            read_body_stream
-                                .append_all(quote!(let mut #field_ident = Default::default();));
+                            read_body_stream.append_all(quote!(let mut #field_ident = Default::default();));
                             read_inner_stream.append_all(quote!(#field_ident,));
+
                             continue 'field_loop;
                         }
                         _ => continue
@@ -301,59 +288,29 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
                         if !vector_size_map.contains(field_ident.to_string().as_str()) {
                             vector_size_map.insert(field_ident.to_string());
 
-                            read_body_stream.append_all(quote! {
-                                let mut #len_var_name = 0;
-                                reader.w32(&mut #len_var_name);
-                            });
+                            read_body_stream.append_all(quote!(let #len_var_name = w32::deserialize(reader);));
 
                             write_stream.append_all(quote! {
-                                let mut len = self.#field_ident.len() as w32;
-                                writer.w32(&mut len);
+                                let len = w32::from_usize(self.#field_ident.len());
+                                len.serialize(writer);
                             });
                         }
 
                         // This part adds the actual writing/reading of the content of the vector.
                         // Should always happen.
                         if let PathArguments::AngleBracketed(generic_type) = &last.arguments {
-                            let inner = generic_type.args.first().unwrap();
-                            let mut inner_type = inner.to_token_stream();
+                            let inner_type = generic_type.args.first().unwrap();
 
-                            if let syn::GenericArgument::Type(Type::Reference(reference)) = inner {
-                                inner_type = reference.elem.to_token_stream();
-                            }
+                            write_stream.append_all(quote! {
+                                for elem in &self.#field_ident {
+                                    elem.serialize(writer);
+                                }
+                            });
 
-                            if io_types.contains(&inner_type.to_string().as_str()) {
-                                write_stream.append_all(quote! {
-                                    for mut elem in &mut self.#field_ident {
-                                        writer.#inner_type(elem);
-                                    }
-                                });
-
-                                read_body_stream.append_all(quote! {
-                                    let mut #field_ident = Vec::with_capacity(#len_var_name as usize);
-
-                                    for _ in 0..#len_var_name {
-                                        let mut value = Default::default();
-                                        reader.#inner_type(&mut value);
-
-                                        #field_ident.push(value);
-                                    }
-                                });
-                            } else {
-                                write_stream.append_all(quote! {
-                                    for elem in self.#field_ident {
-                                        elem.encode(writer);
-                                    }
-                                });
-
-                                read_body_stream.append_all(quote! {
-                                    let mut #field_ident = Vec::with_capacity(#len_var_name as usize);
-
-                                    for _ in 0..#len_var_name {
-                                        #field_ident.push(#inner_type::decode(reader));
-                                    }
-                                });
-                            }
+                            read_body_stream.append_all(quote! {
+                                let len = #len_var_name.to_usize();
+                                let #field_ident = (0..len).map(|_| #inner_type::deserialize(reader)).collect();
+                            });
 
                             read_inner_stream.append_all(quote!(#field_ident,));
                         }
@@ -367,23 +324,12 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
                     error_stream.append_all(quote_spanned!(span => compile_error!("the `len_type` attribute is only allowed on vectors");));
                 }
 
-                let field_name = quote! { #field_type }.to_string();
-
-                if io_types.contains(&field_name.as_str()) {
-                    write_stream.append_all(quote! {
-                        writer.#field_type(&mut self.#field_ident);
-                    });
-                    read_body_stream.append_all(quote! {
-                        let mut #field_ident = Default::default();
-                        reader.#field_type(&mut #field_ident);
-                    });
+                if let Some((_, et)) = enum_header_attr {
+                    write_stream.append_all(quote!(<#field_type as EnumEncoder<#et>>::encode(&self.#field_ident, writer);));
+                    read_body_stream.append_all(quote!(let #field_ident = <#field_type as EnumEncoder<#et>>::decode(reader);));
                 } else {
-                    write_stream.append_all(quote! {
-                        self.#field_ident.encode(writer);
-                    });
-                    read_body_stream.append_all(quote! {
-                        let #field_ident = #field_type::decode(reader);
-                    });
+                    write_stream.append_all(quote!(self.#field_ident.serialize(writer);));
+                    read_body_stream.append_all(quote!(let #field_ident = #field_type::deserialize(reader);));
                 }
 
                 read_inner_stream.append_all(quote!(#field_ident,));
@@ -431,6 +377,139 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
                     format_ident!("_")
                 }
             };
+
+            // Token streams for all the match cases in the read/write implementation.
+            let mut write_match_stream = proc_macro2::TokenStream::new();
+            let mut read_match_stream = proc_macro2::TokenStream::new();
+
+            // Token streams for the fallback (_) case.
+            let mut write_fallback_stream = proc_macro2::TokenStream::new();
+            let mut read_fallback_stream = proc_macro2::TokenStream::new();
+
+            // Use an isize to store the variant number to ensure both signed and unsigned discriminants
+            // work.
+            let mut variant_number = 0isize;
+
+            'variant_loop: for variant in &mut e.variants {
+                let variant_name = &variant.ident;
+                let mut attr_remove_queue = vec![];
+
+                for (attr_i, attr) in variant.attrs.iter().enumerate() {
+                    if attr.path.to_token_stream().to_string() != "fallback" {
+                        continue;
+                    }
+                    attr_remove_queue.push(attr_i);
+
+                    if !read_fallback_stream.is_empty() || !write_fallback_stream.is_empty() {
+                        error_stream.append_all(quote_spanned!(attr.span()=> compile_error!("cannot have more than one fallback variant");));
+                    }
+
+                    let err_msg = format!("trying to write fallback variant for enum {}", ident);
+                    write_fallback_stream.append_all(quote!(_ => panic!(#err_msg)));
+                    read_fallback_stream.append_all(quote!(_ => #ident::#variant_name));
+                }
+
+                attr_remove_queue.sort();
+                for attr_i in attr_remove_queue.iter().rev() {
+                    variant.attrs.remove(*attr_i);
+                }
+                if !attr_remove_queue.is_empty() {
+                    continue 'variant_loop;
+                }
+
+                // Check if the variant has an explicit integer discriminant such as the `1` in
+                // `Variant = 1`.
+                if let Some(discriminant) = variant.discriminant.as_ref() {
+                    match discriminant
+                        .1
+                        .to_token_stream()
+                        .to_string()
+                        .chars()
+                        .filter(|c| !c.is_ascii_whitespace())
+                        .collect::<String>()
+                        .parse::<isize>()
+                    {
+                        Err(err) => {
+                            let err_msg =
+                                format!("could not parse enum variant into integer: {}", err);
+                            error_stream.append_all(
+                                quote_spanned!(discriminant.1.span()=> compile_error!(#err_msg);),
+                            );
+                        }
+                        Ok(val) => variant_number = val,
+                    }
+                }
+
+                let variant_number_token = proc_macro2::Literal::isize_unsuffixed(variant_number);
+                let mut enum_content = proc_macro2::TokenStream::new();
+                let mut enum_content_read = proc_macro2::TokenStream::new();
+                let mut enum_content_write = proc_macro2::TokenStream::new();
+
+                // Go over all the 'fields' of the variant. For a tuple variant, this would be the
+                // Type1, Type2, etc. in `MyVariant(Type1, Type2)`. First checks if the fields are
+                // named (in the form of {}), as this is not supported.
+                if let Fields::Named(_) = &variant.fields {
+                    error_stream.append_all(quote_spanned!(variant.fields.span()=> compile_error!("enum variant cannot have named fields");));
+                }
+                for (field_num, field) in variant.fields.iter().enumerate() {
+                    let field_name = format_ident!("e_{}", field_num);
+                    let field_type = &field.ty;
+                    enum_content.append_all(quote!(#field_name,));
+                    enum_content_write.append_all(quote!(<#field_type as Binary>::serialize(#field_name, writer);));
+                    enum_content_read.append_all(quote!(<#field_type as Binary>::deserialize(reader),));
+                }
+                if !enum_content.is_empty() {
+                    enum_content = quote!((#enum_content));
+                }
+                if !enum_content_read.is_empty() {
+                    enum_content_read = quote!((#enum_content_read));
+                }
+
+                write_match_stream.append_all(quote! {
+                    #ident::#variant_name #enum_content => {
+                        N::write_isize(writer, #variant_number_token);
+                        #enum_content_write
+                    },
+                });
+
+                read_match_stream.append_all(quote! {
+                    #variant_number_token => #ident::#variant_name #enum_content_read,
+                });
+
+                variant_number += 1;
+            }
+
+            // Write the default Writable and Readable function bodies.
+            write_stream.append_all(quote! {
+                <#ident as EnumEncoder<#type_name>>::encode(self, writer)
+            });
+            read_stream.append_all(quote! {
+                <#ident as EnumEncoder<#type_name>>::decode(reader)
+            });
+
+            if read_fallback_stream.is_empty() {
+                read_fallback_stream = quote!(n => panic!("Unknown enum variant {}", n));
+            }
+
+            extra_stream.append_all(quote! {
+                impl<N: binary::Numeric> binary::EnumEncoder<N> for #ident {
+                    fn encode(&self, writer: &mut bytes::BytesMut) {
+                        use binary::*;
+                        match self {
+                            #write_match_stream
+                            #write_fallback_stream
+                        }
+                    }
+
+                    fn decode(reader: &mut bytes::Bytes) -> Self {
+                        use binary::*;
+                        match N::read_isize(reader) {
+                            #read_match_stream
+                            #read_fallback_stream
+                        }
+                    }
+                }
+            });
         }
         Data::Union(u) => error_stream.append_all(
             quote_spanned!(u.union_token.span()=> compile_error!("Unions are not supported");),
@@ -445,16 +524,18 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
         #input
 
         impl binary::Binary for #ident {
-            fn encode(&mut self, writer: &mut binary::Writer) {
+            fn serialize(&self, writer: &mut bytes::BytesMut) {
                 use binary::*;
                 #write_stream
             }
 
-            fn decode(reader: &mut binary::Reader) -> Self {
+            fn deserialize(reader: &mut bytes::Bytes) -> Self {
                 use binary::*;
                 #read_stream
             }
         }
+
+        #extra_stream
     };
     tok.into()
 }

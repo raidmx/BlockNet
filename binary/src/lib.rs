@@ -1,12 +1,13 @@
 pub mod numerics;
-pub mod sized;
+pub mod prefixed;
+pub mod enums;
 
 pub use numerics::*;
-pub use sized::*;
+pub use enums::*;
 
 use bytes::{Bytes, BytesMut};
 
 pub trait Binary: Default {
-    fn encode(&self, writer: &mut BytesMut);
-    fn decode(reader: &mut Bytes) -> Self;
+    fn serialize(&self, writer: &mut BytesMut);
+    fn deserialize(reader: &mut Bytes) -> Self;
 }

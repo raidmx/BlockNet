@@ -53,6 +53,7 @@ version = "0.1.0"
 dependencies = [
  "binary",
  "binary_derive",
+ "bytes",
 ]
 
 [[package]]

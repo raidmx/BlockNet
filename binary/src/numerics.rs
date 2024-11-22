@@ -3,30 +3,58 @@
 use crate::Binary;
 use bytes::{Buf, BufMut, BytesMut, Bytes};
 
-pub trait UsizeCodec {
-    fn write(writer: &mut BytesMut, value: usize);
-    fn read(reader: &mut Bytes) -> usize;
+pub trait Numeric {
+    fn write_usize(writer: &mut BytesMut, value: usize);
+    fn read_usize(reader: &mut Bytes) -> usize;
+    fn write_isize(writer: &mut BytesMut, value: isize);
+    fn read_isize(reader: &mut Bytes) -> isize;
+    fn from_usize(value: usize) -> Self;
+    fn to_usize(self) -> usize;
 }
 
 macro_rules! impl_generic {
     ($type:ident, $read:ident, $write:ident) => {
         impl crate::Binary for $type {
-            fn encode(&self, writer: &mut bytes::BytesMut) {
+            #[inline]
+            fn serialize(&self, writer: &mut bytes::BytesMut) {
                 writer.$write(*self);
             }
 
-            fn decode(reader: &mut bytes::Bytes) -> Self {
+            #[inline]
+            fn deserialize(reader: &mut bytes::Bytes) -> Self {
                 reader.$read()
             }
         }
 
-        impl UsizeCodec for $type {
-            fn write(writer: &mut bytes::BytesMut, value: usize) {
-                (value as $type).encode(writer);
+        impl Numeric for $type {
+            #[inline]
+            fn write_usize(writer: &mut bytes::BytesMut, value: usize) {
+                (value as $type).serialize(writer);
             }
 
-            fn read(reader: &mut bytes::Bytes) -> usize {
-                $type::decode(reader) as usize
+            #[inline]
+            fn read_usize(reader: &mut bytes::Bytes) -> usize {
+                $type::deserialize(reader) as usize
+            }
+
+            #[inline]
+            fn write_isize(writer: &mut bytes::BytesMut, value: isize) {
+                (value as $type).serialize(writer);
+            }
+
+            #[inline]
+            fn read_isize(reader: &mut bytes::Bytes) -> isize {
+                $type::deserialize(reader) as isize
+            }
+
+            #[inline]
+            fn from_usize(value: usize) -> $type {
+                value as $type
+            }
+
+            #[inline]
+            fn to_usize(self) -> usize {
+                self as usize
             }
         }
     };
@@ -62,24 +90,48 @@ macro_rules! create_derived {
         }
 
         impl From<$base_type> for $new_type {
+            #[inline]
             fn from(value: $base_type) -> Self {
                 $new_type(value)
             }
         }
 
         impl From<$new_type> for $base_type {
+            #[inline]
             fn from(value: $new_type) -> $base_type {
                 value.0
             }
         }
 
-        impl UsizeCodec for $new_type {
-            fn write(writer: &mut bytes::BytesMut, value: usize) {
-                Self(value as $base_type).encode(writer);
+        impl Numeric for $new_type {
+            #[inline]
+            fn write_usize(writer: &mut bytes::BytesMut, value: usize) {
+                Self(value as $base_type).serialize(writer);
             }
 
-            fn read(reader: &mut bytes::Bytes) -> usize {
-                $new_type::decode(reader).0 as usize
+            #[inline]
+            fn read_usize(reader: &mut bytes::Bytes) -> usize {
+                $new_type::deserialize(reader).0 as usize
+            }
+
+            #[inline]
+            fn write_isize(writer: &mut bytes::BytesMut, value: isize) {
+                Self(value as $base_type).serialize(writer);
+            }
+
+            #[inline]
+            fn read_isize(reader: &mut bytes::Bytes) -> isize {
+                $new_type::deserialize(reader).0 as isize
+            }
+
+            #[inline]
+            fn from_usize(value: usize) -> $new_type {
+                Self(value as $base_type)
+            }
+
+            #[inline]
+            fn to_usize(self) -> usize {
+                self.0 as usize
             }
         }
     };
@@ -102,11 +154,13 @@ create_derived!(d64, f64);
 macro_rules! impl_derived {
     ($type:ident, $read:ident, $write:ident) => {
         impl crate::Binary for $type {
-            fn encode(&self, writer: &mut bytes::BytesMut) {
+            #[inline]
+            fn serialize(&self, writer: &mut bytes::BytesMut) {
                 writer.$write(**self);
             }
 
-            fn decode(reader: &mut bytes::Bytes) -> Self {
+            #[inline]
+            fn deserialize(reader: &mut bytes::Bytes) -> Self {
                 Self(reader.$read())
             }
         }
@@ -123,11 +177,13 @@ impl_derived!(d32, get_f32, put_f32);
 impl_derived!(d64, get_f64, put_f64);
 
 impl Binary for u24 {
-    fn encode(&self, writer: &mut BytesMut) {
+    #[inline]
+    fn serialize(&self, writer: &mut BytesMut) {
         writer.put_slice(&[**self as u8, (**self >> 8) as u8, (**self >> 16) as u8]);
     }
 
-    fn decode(reader: &mut Bytes) -> Self {
+    #[inline]
+    fn deserialize(reader: &mut Bytes) -> Self {
         let slice = &reader.chunk()[..3];
         let value = slice[0] as u32 | (slice[1] as u32) << 8 | (slice[2] as u32) << 16;
 
@@ -137,9 +193,9 @@ impl Binary for u24 {
 }
 
 impl Binary for v32 {
-    fn encode(&self, writer: &mut BytesMut) {
-        let mut u = (**self as u32) << 1;
-        if **self < 0 {
+    fn serialize(&self, writer: &mut BytesMut) {
+        let mut u = (self.0 as u32) << 1;
+        if self.0 < 0 {
             u = !u;
         }
         while u >= 0x80 {
@@ -149,15 +205,15 @@ impl Binary for v32 {
         writer.put_u8(u as u8);
     }
 
-    fn decode(reader: &mut Bytes) -> Self {
+    fn deserialize(reader: &mut Bytes) -> Self {
         let mut v: u32 = 0;
         for i in (0..35).step_by(7) {
             let b = reader.get_u8();
 
             v |= ((b & 0x7f) as u32) << i;
             if b & 0x80 == 0 {
-                let u = (v >> 1) as i32;
-                return if v & 1 != 0 { Self(-u) } else { Self(u) };
+                let x = (v >> 1) as i32;
+                return if v & 1 != 0 { Self(!x) } else { Self(x) };
             }
         }
         panic!("varint i32 overflow");
@@ -165,7 +221,7 @@ impl Binary for v32 {
 }
 
 impl Binary for w32 {
-    fn encode(&self, writer: &mut BytesMut) {
+    fn serialize(&self, writer: &mut BytesMut) {
         let mut x = **self;
         while x >= 0x80 {
             writer.put_u8(x as u8 | 0x80);
@@ -174,7 +230,7 @@ impl Binary for w32 {
         writer.put_u8(x as u8);
     }
 
-    fn decode(reader: &mut Bytes) -> Self {
+    fn deserialize(reader: &mut Bytes) -> Self {
         let mut v: u32 = 0;
         for i in (0..35).step_by(7) {
             let b = reader.get_u8();
@@ -189,7 +245,7 @@ impl Binary for w32 {
 }
 
 impl Binary for v64 {
-    fn encode(&self, writer: &mut BytesMut) {
+    fn serialize(&self, writer: &mut BytesMut) {
         let mut u = (**self as u64) << 1;
         if **self < 0 {
             u = !u;
@@ -201,22 +257,22 @@ impl Binary for v64 {
         writer.put_u8(u as u8);
     }
 
-    fn decode(reader: &mut Bytes) -> Self {
+    fn deserialize(reader: &mut Bytes) -> Self {
         let mut v: u64 = 0;
         for i in (0..70).step_by(7) {
             let b = reader.get_u8();
 
             v |= ((b & 0x7f) as u64) << i;
             if b & 0x80 == 0 {
-                let u = (v >> 1) as i64;
-                return if v & 1 != 0 { Self(-u) } else { Self(u) };
+                let x = (v >> 1) as i64;
+                return if v & 1 != 0 { Self(!x) } else { Self(x) };
             }
         }
         panic!("varint i64 overflow");
     }
 }
 impl Binary for w64 {
-    fn encode(&self, writer: &mut BytesMut) {
+    fn serialize(&self, writer: &mut BytesMut) {
         let mut x = **self;
         while x >= 0x80 {
             writer.put_u8(x as u8 | 0x80);
@@ -225,7 +281,7 @@ impl Binary for w64 {
         writer.put_u8(x as u8);
     }
 
-    fn decode(reader: &mut Bytes) -> Self {
+    fn deserialize(reader: &mut Bytes) -> Self {
         let mut v: u64 = 0;
         for i in (0..70).step_by(7) {
             let b = reader.get_u8();
