@@ -226,7 +226,7 @@ impl Binary for v32 {
             v |= ((b & 0x7f) as u32) << i;
             if b & 0x80 == 0 {
                 let x = (v >> 1) as i32;
-                return if v & 1 != 0 { Some(!x.into()) } else { Some(x.into()) };
+                return if v & 1 != 0 { Some(Self(!x)) } else { Some(Self(x)) };
             }
         }
         None
@@ -250,7 +250,7 @@ impl Binary for w32 {
 
             v |= ((b & 0x7f) as u32) << i;
             if b & 0x80 == 0 {
-                return Some(v.into())
+                return Some(Self(v))
             }
         }
         None
@@ -278,7 +278,7 @@ impl Binary for v64 {
             v |= ((b & 0x7f) as u64) << i;
             if b & 0x80 == 0 {
                 let x = (v >> 1) as i64;
-                return if v & 1 != 0 { Some(!x.into()) } else { Some(x.into()) };
+                return if v & 1 != 0 { Some(Self(!x)) } else { Some(Self(x)) };
             }
         }
         None
@@ -301,7 +301,7 @@ impl Binary for w64 {
 
             v |= ((b & 0x7f) as u64) << i;
             if b & 0x80 == 0 {
-                return Some(v.into())
+                return Some(Self(v))
             }
         }
         None

@@ -309,7 +309,14 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
 
                             read_body_stream.append_all(quote! {
                                 let len = #len_var_name.to_usize();
-                                let #field_ident = (0..len).map(|_| #inner_type::deserialize(reader)?).collect();
+                                let mut #field_ident = Vec::with_capacity(len);
+
+                                for _ in 0..len {
+                                    match #inner_type::deserialize(reader) {
+                                        Some(value) => #field_ident.push(value),
+                                        None => return None,
+                                    }
+                                }
                             });
 
                             read_inner_stream.append_all(quote!(#field_ident,));
@@ -406,7 +413,7 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
 
                     let err_msg = format!("trying to write fallback variant for enum {}", ident);
                     write_fallback_stream.append_all(quote!(_ => panic!(#err_msg)));
-                    read_fallback_stream.append_all(quote!(_ => #ident::#variant_name));
+                    read_fallback_stream.append_all(quote!(_ => Some(#ident::#variant_name)));
                 }
 
                 attr_remove_queue.sort();
@@ -473,7 +480,7 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
                 });
 
                 read_match_stream.append_all(quote! {
-                    #variant_number_token => #ident::#variant_name #enum_content_read,
+                    #variant_number_token => Some(#ident::#variant_name #enum_content_read),
                 });
 
                 variant_number += 1;
@@ -484,7 +491,7 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
                 <#ident as EnumEncoder<#type_name>>::encode(self, writer)
             });
             read_stream.append_all(quote! {
-                <#ident as EnumEncoder<#type_name>>::decode(reader)?
+                <#ident as EnumEncoder<#type_name>>::decode(reader)
             });
 
             if read_fallback_stream.is_empty() {
@@ -503,7 +510,7 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
 
                     fn decode(reader: &mut bytes::Bytes) -> Option<Self> {
                         use binary::*;
-                        match N::read_isize(reader) {
+                        match N::read_isize(reader)? {
                             #read_match_stream
                             #read_fallback_stream
                         }
