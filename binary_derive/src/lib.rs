@@ -6,11 +6,10 @@ use std::collections::HashSet;
 use syn::spanned::Spanned;
 use syn::{parse_macro_input, Data, DeriveInput, Fields, FieldsNamed, PathArguments, Type};
 
-/// Implements `Readable<T>` and `Writable` for a type named `T`.
+/// Implements `Binary` for a type named `T`.
 ///
 /// For a struct, it does so by looking at its fields and writing/reading them in the order they are
-/// defined. All of these fields must also implement `Readable<S>` and `Writable` for a field with
-/// type `S`.
+/// defined. All of these fields must also implement `Binary`
 ///
 /// Vectors are a special case. They do not implement Readable or Writable by themselves, but can
 /// still be written of its content does. These vectors do require an attribute to specify what type
@@ -19,7 +18,7 @@ use syn::{parse_macro_input, Data, DeriveInput, Fields, FieldsNamed, PathArgumen
 /// The first such attribute is `#[len_type(L)]`, where `L` i the type to use for the vector
 /// length. It should be put above the vector in question.
 /// ```ignore
-/// use zuri_net_derive::proto;
+/// use binary::proto;
 ///
 /// #[proto]
 /// pub struct PacketWithVec {
@@ -27,7 +26,7 @@ use syn::{parse_macro_input, Data, DeriveInput, Fields, FieldsNamed, PathArgumen
 ///     pub vec: Vec<String>
 /// }
 /// ```
-/// This vector will use a u8 to write / read its length. Does not affect how String is read or
+/// This vector will use an u8 to write / read its length. Does not affect how String is read or
 /// written.
 ///
 /// The other attribute that can be used is `#[len_for(V)]`, which, unlike the previous attribute,
@@ -37,7 +36,7 @@ use syn::{parse_macro_input, Data, DeriveInput, Fields, FieldsNamed, PathArgumen
 /// field. Note that in the macro expansion, this field will be removed. The field only exists to
 /// specify how the packet's data is structured
 /// ```ignore
-/// use zuri_net_derive::proto;
+/// use binary::proto;
 ///
 /// #[proto]
 /// pub struct PacketWithVec {
@@ -55,7 +54,7 @@ use syn::{parse_macro_input, Data, DeriveInput, Fields, FieldsNamed, PathArgumen
 /// any data that might be present in that variant. Using this packet on an enum would look
 /// something like this
 /// ```ignore
-/// use zuri_net_derive::proto;
+/// use binary::proto;
 ///
 /// #[proto(u8)]
 /// #[repr(u8)]
@@ -74,12 +73,11 @@ use syn::{parse_macro_input, Data, DeriveInput, Fields, FieldsNamed, PathArgumen
 ///
 /// Sometimes, enum discriminants are written with a different type for the same enum in the
 /// minecraft protocol (for some reason). This is also supported. When using this macro on an enum
-/// `T`, it automatically implements `EnumReadable<T, D>` and `EnumWritable<D>` for that enum, where
-/// `D` refers to the new type used for the discriminant. `D` needs to be convertible from and to
-/// the default type specified in the attribute, as well as be writable and readable. To write an
-/// enum with a specific discriminant type, `#[enum_header(D)]` can be used.
+/// `T`, it automatically implements `EnumEncoder<N>` for that enum, where `N` refers to the new type
+/// used for the discriminant. To write an enum with a specific discriminant type, `#[enum_header(N)]`
+/// can be used.
 /// ```ignore
-/// use zuri_net_derive::proto;
+/// use binary::proto;
 ///
 /// #[proto]
 /// pub struct PacketWithEnum {
