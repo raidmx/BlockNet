@@ -1,13 +1,14 @@
 #![allow(non_camel_case_types)]
 
+use std::mem;
 use crate::Binary;
 use bytes::{Buf, BufMut, BytesMut, Bytes};
 
 pub trait Numeric {
     fn write_usize(writer: &mut BytesMut, value: usize);
-    fn read_usize(reader: &mut Bytes) -> usize;
+    fn read_usize(reader: &mut Bytes) -> Option<usize>;
     fn write_isize(writer: &mut BytesMut, value: isize);
-    fn read_isize(reader: &mut Bytes) -> isize;
+    fn read_isize(reader: &mut Bytes) -> Option<isize>;
     fn from_usize(value: usize) -> Self;
     fn to_usize(self) -> usize;
 }
@@ -21,8 +22,12 @@ macro_rules! impl_generic {
             }
 
             #[inline]
-            fn deserialize(reader: &mut bytes::Bytes) -> Self {
-                reader.$read()
+            fn deserialize(reader: &mut bytes::Bytes) -> Option<Self> {
+                if reader.remaining() < mem::size_of::<$type>() {
+                    return None;
+                }
+
+                Some(reader.$read())
             }
         }
 
@@ -33,8 +38,8 @@ macro_rules! impl_generic {
             }
 
             #[inline]
-            fn read_usize(reader: &mut bytes::Bytes) -> usize {
-                $type::deserialize(reader) as usize
+            fn read_usize(reader: &mut bytes::Bytes) -> Option<usize> {
+                Some($type::deserialize(reader)? as usize)
             }
 
             #[inline]
@@ -43,8 +48,8 @@ macro_rules! impl_generic {
             }
 
             #[inline]
-            fn read_isize(reader: &mut bytes::Bytes) -> isize {
-                $type::deserialize(reader) as isize
+            fn read_isize(reader: &mut bytes::Bytes) -> Option<isize> {
+                Some($type::deserialize(reader)? as isize)
             }
 
             #[inline]
@@ -110,8 +115,8 @@ macro_rules! create_derived {
             }
 
             #[inline]
-            fn read_usize(reader: &mut bytes::Bytes) -> usize {
-                $new_type::deserialize(reader).0 as usize
+            fn read_usize(reader: &mut bytes::Bytes) -> Option<usize> {
+                Some($new_type::deserialize(reader)?.0 as usize)
             }
 
             #[inline]
@@ -120,8 +125,8 @@ macro_rules! create_derived {
             }
 
             #[inline]
-            fn read_isize(reader: &mut bytes::Bytes) -> isize {
-                $new_type::deserialize(reader).0 as isize
+            fn read_isize(reader: &mut bytes::Bytes) -> Option<isize> {
+                Some($new_type::deserialize(reader)?.0 as isize)
             }
 
             #[inline]
@@ -160,8 +165,12 @@ macro_rules! impl_derived {
             }
 
             #[inline]
-            fn deserialize(reader: &mut bytes::Bytes) -> Self {
-                Self(reader.$read())
+            fn deserialize(reader: &mut bytes::Bytes) -> Option<Self> {
+                if reader.remaining() < mem::size_of::<$type>() {
+                    return None;
+                }
+
+                Some(Self(reader.$read()))
             }
         }
     };
@@ -183,12 +192,16 @@ impl Binary for u24 {
     }
 
     #[inline]
-    fn deserialize(reader: &mut Bytes) -> Self {
+    fn deserialize(reader: &mut Bytes) -> Option<Self> {
+        if reader.remaining() < 3 {
+            return None;
+        }
+
         let slice = &reader.chunk()[..3];
         let value = slice[0] as u32 | (slice[1] as u32) << 8 | (slice[2] as u32) << 16;
 
         reader.advance(3);
-        Self(value)
+        Some(Self(value))
     }
 }
 
@@ -205,7 +218,7 @@ impl Binary for v32 {
         writer.put_u8(u as u8);
     }
 
-    fn deserialize(reader: &mut Bytes) -> Self {
+    fn deserialize(reader: &mut Bytes) -> Option<Self> {
         let mut v: u32 = 0;
         for i in (0..35).step_by(7) {
             let b = reader.get_u8();
@@ -213,10 +226,10 @@ impl Binary for v32 {
             v |= ((b & 0x7f) as u32) << i;
             if b & 0x80 == 0 {
                 let x = (v >> 1) as i32;
-                return if v & 1 != 0 { Self(!x) } else { Self(x) };
+                return if v & 1 != 0 { Some(!x.into()) } else { Some(x.into()) };
             }
         }
-        panic!("varint i32 overflow");
+        None
     }
 }
 
@@ -230,17 +243,17 @@ impl Binary for w32 {
         writer.put_u8(x as u8);
     }
 
-    fn deserialize(reader: &mut Bytes) -> Self {
+    fn deserialize(reader: &mut Bytes) -> Option<Self> {
         let mut v: u32 = 0;
         for i in (0..35).step_by(7) {
             let b = reader.get_u8();
 
             v |= ((b & 0x7f) as u32) << i;
             if b & 0x80 == 0 {
-                return Self(v)
+                return Some(v.into())
             }
         }
-        panic!("varint u32 overflow");
+        None
     }
 }
 
@@ -257,7 +270,7 @@ impl Binary for v64 {
         writer.put_u8(u as u8);
     }
 
-    fn deserialize(reader: &mut Bytes) -> Self {
+    fn deserialize(reader: &mut Bytes) -> Option<Self> {
         let mut v: u64 = 0;
         for i in (0..70).step_by(7) {
             let b = reader.get_u8();
@@ -265,10 +278,10 @@ impl Binary for v64 {
             v |= ((b & 0x7f) as u64) << i;
             if b & 0x80 == 0 {
                 let x = (v >> 1) as i64;
-                return if v & 1 != 0 { Self(!x) } else { Self(x) };
+                return if v & 1 != 0 { Some(!x.into()) } else { Some(x.into()) };
             }
         }
-        panic!("varint i64 overflow");
+        None
     }
 }
 impl Binary for w64 {
@@ -281,16 +294,16 @@ impl Binary for w64 {
         writer.put_u8(x as u8);
     }
 
-    fn deserialize(reader: &mut Bytes) -> Self {
+    fn deserialize(reader: &mut Bytes) -> Option<Self> {
         let mut v: u64 = 0;
         for i in (0..70).step_by(7) {
             let b = reader.get_u8();
 
             v |= ((b & 0x7f) as u64) << i;
             if b & 0x80 == 0 {
-                return Self(v)
+                return Some(v.into())
             }
         }
-        panic!("varint u64 overflow");
+        None
     }
 }

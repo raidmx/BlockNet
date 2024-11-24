@@ -7,13 +7,16 @@ impl Binary for String {
         writer.put_slice(self.as_bytes());
     }
 
-    fn deserialize(reader: &mut Bytes) -> Self {
-        let len = w32::read_usize(reader);
+    fn deserialize(reader: &mut Bytes) -> Option<Self> {
+        let len = w32::read_usize(reader)?;
 
         let mut vec = vec![0u8; len];
         reader.copy_to_slice(&mut vec);
 
-        String::from_utf8(vec).unwrap()
+        match String::from_utf8(vec) {
+            Ok(str) => Some(str),
+            Err(_) => None
+        }
     }
 }
 
@@ -26,14 +29,14 @@ impl<T: Binary> Binary for Vec<T> {
         }
     }
 
-    fn deserialize(reader: &mut Bytes) -> Self {
-        let len = w32::read_usize(reader);
-
+    fn deserialize(reader: &mut Bytes) -> Option<Self<>> {
+        let len = w32::read_usize(reader)?;
         let mut vec = Vec::with_capacity(len);
+
         for _ in 0..len {
-            vec.push(T::deserialize(reader));
+            vec.push(T::deserialize(reader)?);
         }
 
-        vec
+        Some(vec)
     }
 }

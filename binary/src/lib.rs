@@ -5,9 +5,9 @@ pub mod enums;
 pub use numerics::*;
 pub use enums::*;
 
-use bytes::{Bytes, BytesMut};
+use bytes::{Buf, Bytes, BytesMut};
 
-pub trait Binary: Default {
+pub trait Binary: Sized + Default {
     fn serialize(&self, writer: &mut BytesMut);
-    fn deserialize(reader: &mut Bytes) -> Self;
+    fn deserialize(reader: &mut Bytes) -> Option<Self>;
 }
