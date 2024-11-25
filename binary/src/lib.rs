@@ -35,6 +35,12 @@ pub trait Decode<'a> : Sized + Debug {
     fn decode(r: &mut Reader<'a>) -> Option<Self>;
 }
 
+/// EnumEncoder is a trait implemented by Enums to serialize and deserialize enumerations
+pub trait EnumEncoder<V: Variant> : Debug + Sized {
+    fn encode(&self, w: &mut Writer);
+    fn decode(r: &mut Reader) -> Option<Self>;
+}
+
 /// Prefix is a trait implemented by all those numeric types that implement the
 /// [`Encode`] and [`Decode`] trait and as well as can be converted to and from
 /// usize.

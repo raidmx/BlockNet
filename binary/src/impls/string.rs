@@ -1,5 +1,5 @@
 use bytes::{Buf, BufMut};
-use crate::{generate, Decode, Encode, Prefix, Reader, Writer};
+use crate::{generate, Decode, Encode, Prefix, Reader, VarU32, Writer};
 
 generate!(RefString, <P: Prefix>, &'a str, 'a);
 generate!(CString, <P: Prefix>, String);
@@ -46,5 +46,35 @@ impl<P: Prefix> Decode<'_> for CString<P> {
             Ok(val) => Some(CString::new(val)),
             Err(_) => None
         }
+    }
+}
+
+impl Encode for str {
+    fn encode(&self, w: &mut Writer) {
+        VarU32::from(self.len()).encode(w);
+        w.put_slice(self.as_ref());
+    }
+}
+
+impl<'a> Decode<'a> for &'a str {
+    fn decode(r: &mut Reader<'a>) -> Option<Self> {
+        let len = VarU32::decode(r)?.into();
+        
+        match std::str::from_utf8(&r[..len]) {
+            Ok(v) => Some(v),
+            Err(_) => None
+        }
+    }
+}
+
+impl Encode for String {
+    fn encode(&self, w: &mut Writer) {
+        self.as_str().encode(w);
+    }
+}
+
+impl Decode<'_> for String {
+    fn decode(r: &mut Reader<'_>) -> Option<Self> {
+        Some(<&str>::decode(r)?.into())
     }
 }

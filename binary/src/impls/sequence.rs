@@ -1,6 +1,6 @@
 use std::mem::MaybeUninit;
 use bytes::Buf;
-use crate::{generate, Decode, Encode, Prefix, Reader, Writer};
+use crate::{generate, Decode, Encode, Prefix, Reader, VarU32, Writer};
 
 generate!(Array, <P: Prefix, T: Encode>, Vec<T>);
 
@@ -58,14 +58,25 @@ impl<'a, T: Decode<'a>, const N: usize> Decode<'a> for [T; N] {
 
 impl<T: Encode> Encode for [T] {
     fn encode(&self, w: &mut Writer) {
+        VarU32::from(self.len()).encode(w);
+
         for item in self {
             item.encode(w);
         }
     }
 }
 
-impl<'a> Decode<'a> for &'a [u8] {
+impl<T: Encode> Encode for Vec<T> {
+    fn encode(&self, w: &mut Writer) {
+        self.as_slice().encode(w);
+    }
+}
+
+impl<'a, T: Decode<'a>> Decode<'a> for Vec<T> {
     fn decode(r: &mut Reader<'a>) -> Option<Self> {
-        Some(&r[..])
+        let len: usize = VarU32::decode(r)?.into();
+        let data = (0..len).map(|_| T::decode(r)).collect::<Option<_>>()?;
+
+        Some(data)
     }
 }

@@ -44,7 +44,40 @@ impl Decode<'_> for I8 {
     }
 }
 
-macro_rules! impl_serde {
+macro_rules! impl_generic {
+    ($type:ident, $read:ident, $write:ident) => {
+        impl Encode for $type {
+            #[inline]
+            fn encode(&self, w: &mut Writer) {
+                w.$write(*self);
+            }
+        }
+
+        impl Decode<'_> for $type {
+            #[inline]
+            fn decode(r: &mut Reader) -> Option<Self> {
+                if r.remaining() < std::mem::size_of::<$type>() {
+                    return None;
+                }
+
+                Some(r.$read())
+            }
+        }
+    };
+}
+
+impl_generic!(u8, get_u8, put_u8);
+impl_generic!(i8, get_i8, put_i8);
+impl_generic!(u16, get_u16_le, put_u16_le);
+impl_generic!(i16, get_i16_le, put_i16_le);
+impl_generic!(u32, get_u32_le, put_u32_le);
+impl_generic!(i32, get_i32_le, put_i32_le);
+impl_generic!(u64, get_u64_le, put_u64_le);
+impl_generic!(i64, get_i64_le, put_i64_le);
+impl_generic!(f32, get_f32_le, put_f32_le);
+impl_generic!(f64, get_f64_le, put_f64_le);
+
+macro_rules! impl_ordered {
     ($type:ident, <$($gen:ident: $gen_constraint:ident),*>, $read:ident, $write:ident) => {
         impl<$($gen: $gen_constraint),*> Encode for $type<$($gen),*> {
             #[inline]
@@ -62,14 +95,14 @@ macro_rules! impl_serde {
     };
 }
 
-impl_serde!(U16, <E: ByteOrder>, get_u16, put_u16);
-impl_serde!(I16, <E: ByteOrder>, get_i16, put_i16);
-impl_serde!(U32, <E: ByteOrder>, get_u32, put_u32);
-impl_serde!(I32, <E: ByteOrder>, get_i32, put_i32);
-impl_serde!(U64, <E: ByteOrder>, get_u64, put_u64);
-impl_serde!(I64, <E: ByteOrder>, get_i64, put_i64);
-impl_serde!(F32, <E: ByteOrder>, get_f32, put_f32);
-impl_serde!(F64, <E: ByteOrder>, get_f64, put_f64);
+impl_ordered!(U16, <E: ByteOrder>, get_u16, put_u16);
+impl_ordered!(I16, <E: ByteOrder>, get_i16, put_i16);
+impl_ordered!(U32, <E: ByteOrder>, get_u32, put_u32);
+impl_ordered!(I32, <E: ByteOrder>, get_i32, put_i32);
+impl_ordered!(U64, <E: ByteOrder>, get_u64, put_u64);
+impl_ordered!(I64, <E: ByteOrder>, get_i64, put_i64);
+impl_ordered!(F32, <E: ByteOrder>, get_f32, put_f32);
+impl_ordered!(F64, <E: ByteOrder>, get_f64, put_f64);
 
 #[macro_export]
 macro_rules! impl_numeric {
@@ -111,5 +144,3 @@ impl_numeric!(U32, <E: ByteOrder>, u32);
 impl_numeric!(I32, <E: ByteOrder>, i32);
 impl_numeric!(U64, <E: ByteOrder>, u64);
 impl_numeric!(I64, <E: ByteOrder>, i64);
-impl_numeric!(F32, <E: ByteOrder>, f32);
-impl_numeric!(F64, <E: ByteOrder>, f64);
