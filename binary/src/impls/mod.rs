@@ -44,11 +44,6 @@ macro_rules! generate {
             }
         }
 
-        impl<$($lifetime,)? $($gen: $gen_constraint),*> std::fmt::Debug for $name<$($lifetime,)? $($gen),*> {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{:?}", self.val)
-            }
-        }
 
         impl<$($lifetime,)? $($gen: $gen_constraint),*> core::ops::Deref for $name<$($lifetime,)? $($gen),*> {
             type Target = $type;

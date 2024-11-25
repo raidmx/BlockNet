@@ -1,2 +1,2 @@
 [workspace]
-members = [ "binary", "binary_derive" ]
+members = [ "binary", "derive", "protocol"]

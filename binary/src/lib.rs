@@ -4,7 +4,7 @@ pub mod order;
 pub use impls::*;
 pub use order::*;
 
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use bytes::BytesMut;
 
 /// Writer is a type alias for a BytesMut instance.
@@ -15,7 +15,7 @@ pub type Writer = BytesMut;
 /// instance.
 pub type Reader<'a> = &'a [u8];
 
-pub trait Encode : Debug {
+pub trait Encode {
     /// Writes this object to the provided writer.
     ///
     /// If this type also implements [`Decode`] then successful calls to this
@@ -27,7 +27,7 @@ pub trait Encode : Debug {
     fn encode(&self, w: &mut Writer);
 }
 
-pub trait Decode<'a> : Sized + Debug {
+pub trait Decode<'a> : Sized {
     /// Reads this object from the provided byte slice.
     ///
     /// Implementations of `Decode` are expected to shrink the slice from the
