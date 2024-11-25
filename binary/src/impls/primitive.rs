@@ -1,5 +1,7 @@
+#![allow(non_camel_case_types)]
+
 use bytes::{Buf, BufMut};
-use crate::{generate, ByteOrder, Decode, Encode, Prefix, Reader, Variant, Writer};
+use crate::{generate, ByteOrder, Decode, Encode, Prefix, Reader, Variant, Writer, BE};
 
 generate!(U8, <>, u8);
 generate!(I8, <>, i8);
@@ -11,6 +13,15 @@ generate!(U64, <E: ByteOrder>, u64);
 generate!(I64, <E: ByteOrder>, i64);
 generate!(F32, <E: ByteOrder>, f32);
 generate!(F64, <E: ByteOrder>, f64);
+
+pub type b16 = I16<BE>;
+pub type n16 = U16<BE>;
+pub type b32 = I32<BE>;
+pub type n32 = U32<BE>;
+pub type b64 = I64<BE>;
+pub type n64 = U64<BE>;
+pub type d32 = F32<BE>;
+pub type d64 = F64<BE>;
 
 impl Encode for U8 {
     fn encode(&self, w: &mut Writer) {
