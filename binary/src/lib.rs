@@ -1,6 +1,7 @@
 pub mod impls;
 pub mod order;
 
+use std::fmt::Debug;
 pub use impls::*;
 pub use order::*;
 
@@ -14,7 +15,7 @@ pub type Writer = BytesMut;
 /// instance.
 pub type Reader<'a> = &'a [u8];
 
-pub trait Encode {
+pub trait Encode: Debug {
     /// Writes this object to the provided writer.
     ///
     /// If this type also implements [`Decode`] then successful calls to this
@@ -26,7 +27,7 @@ pub trait Encode {
     fn encode(&self, w: &mut Writer);
 }
 
-pub trait Decode<'a> : Sized {
+pub trait Decode<'a> : Debug + Sized {
     /// Reads this object from the provided byte slice.
     ///
     /// Implementations of `Decode` are expected to shrink the slice from the
@@ -36,13 +37,13 @@ pub trait Decode<'a> : Sized {
 
 /// EnumEncoder is a trait implemented by Enums to serialize and deserialize enum variants.
 /// It uses the Variant trait to specify what type of integer to use for serializing data.
-pub trait EnumEncoder {
+pub trait EnumEncoder: Debug {
     fn write<V: Variant>(&self, w: &mut Writer);
 }
 
 /// EnumDecoder is a trait implemented by Enums to serialize and deserialize enum variants.
 /// It uses the Variant trait to specify what type of integer to use for serializing data.
-pub trait EnumDecoder : Sized {
+pub trait EnumDecoder : Debug + Sized {
     fn read<V: Variant>(r: &mut Reader) -> Option<Self>;
 }
 

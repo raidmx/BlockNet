@@ -19,7 +19,7 @@ pub use sequence::*;
 macro_rules! generate {
     ($name:ident, <$($gen:ident: $gen_constraint:ident),*>, $type:ty $(,$lifetime:tt)?) => {
         #[allow(non_snake_case)]
-        #[derive(PartialEq)]
+        #[derive(PartialEq, Clone)]
         pub struct $name<$($lifetime,)? $($gen: $gen_constraint),*> {
             val: $type,
             $( $gen_constraint: std::marker::PhantomData<$gen>, )*
@@ -44,6 +44,11 @@ macro_rules! generate {
             }
         }
 
+        impl<$($lifetime,)? $($gen: $gen_constraint),*> std::fmt::Debug for $name<$($lifetime,)? $($gen),*> {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{:?}", self.val)
+            }
+        }
 
         impl<$($lifetime,)? $($gen: $gen_constraint),*> core::ops::Deref for $name<$($lifetime,)? $($gen),*> {
             type Target = $type;

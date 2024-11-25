@@ -13,11 +13,11 @@ pub(super) fn derive_packet(item: TokenStream) -> Result<TokenStream> {
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
     Ok(quote! {
-        impl #impl_generics Packet for #name #ty_generics
+        impl #impl_generics crate::packet::Packet for #name #ty_generics
         #where_clause
         {
-            fn id(&self) -> PacketId {
-                PacketId::#name
+            fn id(&self) -> crate::packet::PacketId {
+                crate::packet::PacketId::#name
             }
         }
     })
