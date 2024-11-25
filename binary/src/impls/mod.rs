@@ -5,6 +5,13 @@ pub mod sequence;
 pub mod pointer;
 pub mod other;
 
+pub use primitive::*;
+pub use string::*;
+pub use var_int::*;
+pub use sequence::*;
+pub use pointer::*;
+pub use other::*;
+
 ///
 /// This macro is used to generate the implementations for wrapping generic rust types to
 /// abstract away the serialization and deserialization over the wire.

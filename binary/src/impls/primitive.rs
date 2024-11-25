@@ -1,12 +1,10 @@
 use bytes::{Buf, BufMut};
-use crate::{generate, Decode, Encode, Prefix, Reader, Variant, Writer};
-use crate::order::ByteOrder;
+use crate::{generate, ByteOrder, Decode, Encode, Prefix, Reader, Variant, Writer};
 
 generate!(U8, <>, u8);
 generate!(I8, <>, i8);
 generate!(U16, <E: ByteOrder>, u16);
 generate!(I16, <E: ByteOrder>, i16);
-generate!(U24, <E: ByteOrder>, u32);
 generate!(U32, <E: ByteOrder>, u32);
 generate!(I32, <E: ByteOrder>, i32);
 generate!(U64, <E: ByteOrder>, u64);
@@ -66,7 +64,6 @@ macro_rules! impl_serde {
 
 impl_serde!(U16, <E: ByteOrder>, get_u16, put_u16);
 impl_serde!(I16, <E: ByteOrder>, get_i16, put_i16);
-impl_serde!(U24, <E: ByteOrder>, get_u24, put_u24);
 impl_serde!(U32, <E: ByteOrder>, get_u32, put_u32);
 impl_serde!(I32, <E: ByteOrder>, get_i32, put_i32);
 impl_serde!(U64, <E: ByteOrder>, get_u64, put_u64);
@@ -110,7 +107,6 @@ impl_numeric!(U8, <>, u8);
 impl_numeric!(I8, <>, i8);
 impl_numeric!(U16, <E: ByteOrder>, u16);
 impl_numeric!(I16, <E: ByteOrder>, i16);
-impl_numeric!(U24, <E: ByteOrder>, u32);
 impl_numeric!(U32, <E: ByteOrder>, u32);
 impl_numeric!(I32, <E: ByteOrder>, i32);
 impl_numeric!(U64, <E: ByteOrder>, u64);

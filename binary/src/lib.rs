@@ -1,6 +1,9 @@
 pub mod impls;
 pub mod order;
 
+pub use impls::*;
+pub use order::*;
+
 use std::fmt::Debug;
 use bytes::BytesMut;
 

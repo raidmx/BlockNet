@@ -1,4 +1,5 @@
 use std::mem::MaybeUninit;
+use bytes::Buf;
 use crate::{generate, Decode, Encode, Prefix, Reader, Writer};
 
 generate!(Array, <P: Prefix, T: Encode>, Vec<T>);
@@ -16,8 +17,11 @@ impl<P: Prefix, T: Encode> Encode for Array<P, T> {
 impl<P: Prefix, T: Encode + for<'a> Decode<'a>> Decode<'_> for Array<P, T> {
     fn decode(r: &mut Reader) -> Option<Self> {
         let len = P::decode(r)?.into();
-        let data: Vec<T> = (0..len).map(|_| T::decode(r)).collect::<Option<_>>()?;
+        if r.remaining() < len {
+            return None;
+        }
 
+        let data: Vec<T> = (0..len).map(|_| T::decode(r)).collect::<Option<_>>()?;
         Some(Array::new(data))
     }
 }

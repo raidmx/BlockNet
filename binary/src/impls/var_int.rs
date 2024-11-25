@@ -24,6 +24,10 @@ impl Decode<'_> for VarI32 {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
         let mut v: u32 = 0;
         for i in (0..35).step_by(7) {
+            if r.remaining() < 1  {
+                return None;
+            }
+
             let b = r.get_u8();
 
             v |= ((b & 0x7f) as u32) << i;
@@ -51,6 +55,10 @@ impl Decode<'_> for VarU32 {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
         let mut v: u32 = 0;
         for i in (0..35).step_by(7) {
+            if r.remaining() < 1  {
+                return None;
+            }
+
             let b = r.get_u8();
 
             v |= ((b & 0x7f) as u32) << i;
@@ -80,6 +88,10 @@ impl Decode<'_> for VarI64 {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
         let mut v: u64 = 0;
         for i in (0..70).step_by(7) {
+            if r.remaining() < 1  {
+                return None;
+            }
+
             let b = r.get_u8();
 
             v |= ((b & 0x7f) as u64) << i;
@@ -107,6 +119,10 @@ impl Decode<'_> for VarU64 {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
         let mut v: u64 = 0;
         for i in (0..70).step_by(7) {
+            if r.remaining() < 1  {
+                return None;
+            }
+
             let b = r.get_u8();
 
             v |= ((b & 0x7f) as u64) << i;
