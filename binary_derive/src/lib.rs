@@ -72,7 +72,7 @@ use syn::{parse_macro_input, Data, DeriveInput, Fields, FieldsNamed, PathArgumen
 /// explicit discriminant.
 ///
 /// Sometimes, enum discriminants are written with a different type for the same enum in the
-/// minecraft protocol (for some reason). This is also supported. When using this macro on an enum
+/// minecraft binary (for some reason). This is also supported. When using this macro on an enum
 /// `T`, it automatically implements `EnumEncoder<N>` for that enum, where `N` refers to the new type
 /// used for the discriminant. To write an enum with a specific discriminant type, `#[enum_header(N)]`
 /// can be used.
