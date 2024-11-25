@@ -19,17 +19,10 @@ checksum = "9ac0150caa2ae65ca5bd83f25c7de183dea78d4d366469f148435e2acfbad0da"
 name = "derive"
 version = "0.1.0"
 dependencies = [
- "heck",
  "proc-macro2",
  "quote",
  "syn",
 ]
-
-[[package]]
-name = "heck"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "proc-macro2"
@@ -45,6 +38,7 @@ name = "protocol"
 version = "0.1.0"
 dependencies = [
  "binary",
+ "bytes",
  "derive",
 ]
 

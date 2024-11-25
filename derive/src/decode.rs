@@ -3,7 +3,7 @@ use quote::quote;
 use syn::spanned::Spanned;
 use syn::{parse2, parse_quote, Data, DeriveInput, Error, Fields, Result};
 
-use crate::{add_trait_bounds, decode_split_for_impl, pair_variants_with_discriminants};
+use crate::{add_trait_bounds, decode_split_for_impl, get_encoding_type, pair_variants_with_discriminants};
 
 pub(super) fn derive_decode(item: TokenStream) -> Result<TokenStream> {
     let mut input = parse2::<DeriveInput>(item)?;
@@ -17,7 +17,7 @@ pub(super) fn derive_decode(item: TokenStream) -> Result<TokenStream> {
         ));
     }
 
-    // Use the lifetime specified in the type definition or just use `'a` if not
+    // Use the lifetime specified in the type definition or just use default lifetime if not
     // present.
     let lifetime = input
         .generics
@@ -31,9 +31,15 @@ pub(super) fn derive_decode(item: TokenStream) -> Result<TokenStream> {
                 Fields::Named(fields) => {
                     let init = fields.named.iter().map(|f| {
                         let name = f.ident.as_ref().unwrap();
-                        let ctx = format!("failed to decode field `{name}` in `{input_name}`");
-                        quote! {
-                            #name: Decode::decode(_r).context(#ctx)?,
+                        let encoding_type = get_encoding_type(&f.attrs);
+
+                        match encoding_type {
+                            Some(et) => quote! {
+                                #name: EnumDecoder::read::<#et>(r)?,
+                            },
+                            None => quote! {
+                                #name: Decode::decode(r)?,
+                            }
                         }
                     });
 
@@ -45,10 +51,9 @@ pub(super) fn derive_decode(item: TokenStream) -> Result<TokenStream> {
                 }
                 Fields::Unnamed(fields) => {
                     let init = (0..fields.unnamed.len())
-                        .map(|i| {
-                            let ctx = format!("failed to decode field `{i}` in `{input_name}`");
+                        .map(|_| {
                             quote! {
-                                Decode::decode(_r).context(#ctx)?,
+                                Decode::decode(r)?,
                             }
                         })
                         .collect::<TokenStream>();
@@ -62,7 +67,7 @@ pub(super) fn derive_decode(item: TokenStream) -> Result<TokenStream> {
 
             add_trait_bounds(
                 &mut input.generics,
-                quote!(::valence_protocol::__private::Decode<#lifetime>),
+                quote!(binary::Decode<#lifetime>),
             );
 
             let (impl_generics, ty_generics, where_clause) =
@@ -70,19 +75,24 @@ pub(super) fn derive_decode(item: TokenStream) -> Result<TokenStream> {
 
             Ok(quote! {
                 #[allow(unused_imports)]
-                impl #impl_generics ::valence_protocol::__private::Decode<#lifetime> for #input_name #ty_generics
+                impl #impl_generics binary::Decode<#lifetime> for #input_name #ty_generics
                 #where_clause
                 {
-                    fn decode(_r: &mut &#lifetime [u8]) -> ::valence_protocol::__private::Result<Self> {
-                        use ::valence_protocol::__private::{Decode, Context, ensure};
+                    fn decode(r: &mut &#lifetime [u8]) -> Option<Self> {
+                        use binary::*;
 
-                        Ok(#decode_fields)
+                        Some(#decode_fields)
                     }
                 }
             })
         }
-        Data::Enum(enum_) => {
-            let variants = pair_variants_with_discriminants(enum_.variants)?;
+        Data::Enum(e) => {
+            let variants = pair_variants_with_discriminants(e.variants)?;
+            let encoding_type = get_encoding_type(&input.attrs);
+
+            if encoding_type.is_none() {
+                return Err(Error::new(e.enum_token.span, "You must provide the #[encoding(T)] tag to specify the Enum Encoder."))
+            }
 
             let decode_arms = variants
                 .iter()
@@ -96,63 +106,69 @@ pub(super) fn derive_decode(item: TokenStream) -> Result<TokenStream> {
                                 .iter()
                                 .map(|f| {
                                     let field = f.ident.as_ref().unwrap();
-                                    let ctx = format!(
-                                        "failed to decode field `{field}` in variant `{name}` in \
-                                         `{input_name}`",
-                                    );
                                     quote! {
-                                        #field: Decode::decode(_r).context(#ctx)?,
+                                        #field: Decode::decode(r)?,
                                     }
                                 })
                                 .collect::<TokenStream>();
 
                             quote! {
-                                #disc => Ok(Self::#name { #fields }),
+                                #disc => Some(Self::#name { #fields }),
                             }
                         }
                         Fields::Unnamed(fields) => {
                             let init = (0..fields.unnamed.len())
-                                .map(|i| {
-                                    let ctx = format!(
-                                        "failed to decode field `{i}` in variant `{name}` in \
-                                         `{input_name}`",
-                                    );
+                                .map(|_| {
                                     quote! {
-                                        Decode::decode(_r).context(#ctx)?,
+                                        Decode::decode(r)?,
                                     }
                                 })
                                 .collect::<TokenStream>();
 
                             quote! {
-                                #disc => Ok(Self::#name(#init)),
+                                #disc => Some(Self::#name(#init)),
                             }
                         }
-                        Fields::Unit => quote!(#disc => Ok(Self::#name),),
+                        Fields::Unit => quote!(#disc => Some(Self::#name),),
                     }
                 })
                 .collect::<TokenStream>();
 
             add_trait_bounds(
                 &mut input.generics,
-                quote!(::valence_protocol::__private::Decode<#lifetime>),
+                quote!(binary::Decode<#lifetime>),
             );
 
             let (impl_generics, ty_generics, where_clause) =
                 decode_split_for_impl(input.generics, lifetime.clone());
 
             Ok(quote! {
-                #[allow(unused_imports)]
-                impl #impl_generics ::valence_protocol::__private::Decode<#lifetime> for #input_name #ty_generics
+                impl #impl_generics binary::Decode<#lifetime> for #input_name #ty_generics
                 #where_clause
                 {
-                    fn decode(_r: &mut &#lifetime [u8]) -> ::valence_protocol::__private::Result<Self> {
-                        use ::valence_protocol::__private::{Decode, Context, VarInt, bail};
+                    fn decode(r: &mut &#lifetime [u8]) -> Option<Self> {
+                        use binary::*;
 
-                        let ctx = concat!("failed to decode enum discriminant in `", stringify!(#input_name), "`");
-                        let disc = VarInt::decode(_r).context(ctx)?.0;
+                        let disc = #encoding_type::decode(r)?.into();
+
                         match disc {
                             #decode_arms
-                            n => bail!("unexpected enum discriminant {} in `{}`", disc, stringify!(#input_name)),
+                            n => None,
+                        }
+                    }
+                }
+
+                impl #impl_generics binary::EnumDecoder for #input_name #ty_generics
+                #where_clause
+                {
+                    fn read<V: binary::Variant>(r: &mut binary::Reader) -> Option<Self> {
+                        use binary::*;
+
+                        let disc = V::decode(r)?.into();
+
+                        match disc {
+                            #decode_arms
+                            n => None,
                         }
                     }
                 }

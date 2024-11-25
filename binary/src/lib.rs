@@ -4,7 +4,6 @@ pub mod order;
 pub use impls::*;
 pub use order::*;
 
-use std::fmt::{Debug, Display};
 use bytes::BytesMut;
 
 /// Writer is a type alias for a BytesMut instance.
@@ -37,9 +36,14 @@ pub trait Decode<'a> : Sized {
 
 /// EnumEncoder is a trait implemented by Enums to serialize and deserialize enum variants.
 /// It uses the Variant trait to specify what type of integer to use for serializing data.
-pub trait EnumEncoder<V: Variant> : Debug + Sized {
-    fn encode(&self, w: &mut Writer);
-    fn decode(r: &mut Reader) -> Option<Self>;
+pub trait EnumEncoder {
+    fn write<V: Variant>(&self, w: &mut Writer);
+}
+
+/// EnumDecoder is a trait implemented by Enums to serialize and deserialize enum variants.
+/// It uses the Variant trait to specify what type of integer to use for serializing data.
+pub trait EnumDecoder : Sized {
+    fn read<V: Variant>(r: &mut Reader) -> Option<Self>;
 }
 
 /// Prefix is a trait implemented by all those numeric types that implement the

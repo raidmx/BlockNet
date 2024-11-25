@@ -1,9 +1,9 @@
 use proc_macro2::{Ident, Span, TokenStream};
-use quote::quote;
+use quote::{quote, TokenStreamExt};
 use syn::spanned::Spanned;
 use syn::{parse2, Data, DeriveInput, Error, Fields, LitInt, Result};
 
-use crate::{add_trait_bounds, pair_variants_with_discriminants};
+use crate::{add_trait_bounds, get_encoding_type, pair_variants_with_discriminants};
 
 pub(super) fn derive_encode(item: TokenStream) -> Result<TokenStream> {
     let mut input = parse2::<DeriveInput>(item)?;
@@ -12,7 +12,7 @@ pub(super) fn derive_encode(item: TokenStream) -> Result<TokenStream> {
 
     add_trait_bounds(
         &mut input.generics,
-        quote!(::valence_protocol::__private::Encode),
+        quote!(binary::Encode),
     );
 
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
@@ -25,18 +25,25 @@ pub(super) fn derive_encode(item: TokenStream) -> Result<TokenStream> {
                     .iter()
                     .map(|f| {
                         let name = &f.ident.as_ref().unwrap();
-                        let ctx = format!("failed to encode field `{name}` in `{input_name}`");
-                        quote! {
-                            self.#name.encode(&mut _w).context(#ctx)?;
+                        let field_type = &f.ty;
+
+                        let encoding_type = get_encoding_type(&f.attrs);
+
+                        match encoding_type {
+                            Some(et) => quote! {
+                                <#field_type as EnumEncoder>::write::<#et>(&self.#name, w);
+                            },
+                            None => quote! {
+                                self.#name.encode(w);
+                            }
                         }
                     })
                     .collect(),
                 Fields::Unnamed(fields) => (0..fields.unnamed.len())
                     .map(|i| {
                         let lit = LitInt::new(&i.to_string(), Span::call_site());
-                        let ctx = format!("failed to encode field `{lit}` in `{input_name}`");
                         quote! {
-                            self.#lit.encode(&mut _w).context(#ctx)?;
+                            self.#lit.encode(w);
                         }
                     })
                     .collect(),
@@ -45,112 +52,118 @@ pub(super) fn derive_encode(item: TokenStream) -> Result<TokenStream> {
 
             Ok(quote! {
                 #[allow(unused_imports)]
-                impl #impl_generics ::valence_protocol::__private::Encode for #input_name #ty_generics
+                impl #impl_generics binary::Encode for #input_name #ty_generics
                 #where_clause
                 {
-                    fn encode(&self, mut _w: impl ::std::io::Write) -> ::valence_protocol::__private::Result<()> {
-                        use ::valence_protocol::__private::{Encode, Context};
-
+                    fn encode(&self, w: &mut binary::Writer) {
+                        use binary::*;
                         #encode_fields
-
-                        Ok(())
                     }
                 }
             })
         }
-        Data::Enum(enum_) => {
-            let variants = pair_variants_with_discriminants(enum_.variants)?;
+        Data::Enum(e) => {
+            let variants = pair_variants_with_discriminants(e.variants)?;
+            let encoding_type = get_encoding_type(&input.attrs);
 
-            let encode_arms = variants
-                .iter()
-                .map(|(disc, variant)| {
-                    let variant_name = &variant.ident;
+            if encoding_type.is_none() {
+                return Err(Error::new(e.enum_token.span, "You must provide the #[encoding(T)] tag to specify the Enum Encoder."))
+            }
 
-                    let disc_ctx = format!(
-                        "failed to encode enum discriminant {disc} for variant `{variant_name}` \
-                         in `{input_name}`",
-                    );
+            let mut type1_arms = TokenStream::new();
+            let mut type2_arms = TokenStream::new();
 
-                    match &variant.fields {
-                        Fields::Named(fields) => {
-                            let field_names = fields
-                                .named
-                                .iter()
-                                .map(|f| f.ident.as_ref().unwrap())
-                                .collect::<Vec<_>>();
+            for (disc, variant) in variants.iter() {
+                let variant_name = &variant.ident;
 
-                            let encode_fields = field_names
-                                .iter()
-                                .map(|name| {
-                                    let ctx = format!(
-                                        "failed to encode field `{name}` in variant \
-                                         `{variant_name}` in `{input_name}`",
-                                    );
+                match &variant.fields {
+                    Fields::Named(fields) => {
+                        let field_names = fields
+                            .named
+                            .iter()
+                            .map(|f| f.ident.as_ref().unwrap())
+                            .collect::<Vec<_>>();
 
-                                    quote! {
-                                        #name.encode(&mut _w).context(#ctx)?;
+                        let encode_fields = field_names
+                            .iter()
+                            .map(|name| {
+                                quote! {
+                                        #name.encode(w);
                                     }
-                                })
-                                .collect::<TokenStream>();
+                            })
+                            .collect::<TokenStream>();
 
-                            quote! {
-                                Self::#variant_name { #(#field_names,)* } => {
-                                    VarInt(#disc).encode(&mut _w).context(#disc_ctx)?;
-
-                                    #encode_fields
-                                    Ok(())
-                                }
+                        type1_arms.append_all(quote! {
+                            Self::#variant_name { #(#field_names,)* } => {
+                                #encoding_type::from(#disc).encode(w);
+                                #encode_fields
                             }
-                        }
-                        Fields::Unnamed(fields) => {
-                            let field_names = (0..fields.unnamed.len())
-                                .map(|i| Ident::new(&format!("_{i}"), Span::call_site()))
-                                .collect::<Vec<_>>();
+                        });
 
-                            let encode_fields = field_names
-                                .iter()
-                                .map(|name| {
-                                    let ctx = format!(
-                                        "failed to encode field `{name}` in variant \
-                                         `{variant_name}` in `{input_name}`"
-                                    );
-
-                                    quote! {
-                                        #name.encode(&mut _w).context(#ctx)?;
-                                    }
-                                })
-                                .collect::<TokenStream>();
-
-                            quote! {
-                                Self::#variant_name(#(#field_names,)*) => {
-                                    VarInt(#disc).encode(&mut _w).context(#disc_ctx)?;
-
-                                    #encode_fields
-                                    Ok(())
-                                }
+                        type2_arms.append_all(quote! {
+                            Self::#variant_name { #(#field_names,)* } => {
+                                V::from(#disc).encode(w);
+                                #encode_fields
                             }
-                        }
-                        Fields::Unit => quote! {
-                            Self::#variant_name => Ok(
-                                VarInt(#disc)
-                                    .encode(&mut _w)
-                                    .context(#disc_ctx)?
-                            ),
-                        },
+                        });
                     }
-                })
-                .collect::<TokenStream>();
+                    Fields::Unnamed(fields) => {
+                        let field_names = (0..fields.unnamed.len())
+                            .map(|i| Ident::new(&format!("_{i}"), Span::call_site()))
+                            .collect::<Vec<_>>();
+
+                        let encode_fields = field_names
+                            .iter()
+                            .map(|name| {
+                                quote! {
+                                        #name.encode(w);
+                                    }
+                            })
+                            .collect::<TokenStream>();
+
+                        type1_arms.append_all(quote! {
+                            Self::#variant_name(#(#field_names,)*) => {
+                                #encoding_type::from(#disc).encode(w);
+                                #encode_fields
+                            }
+                        });
+
+                        type2_arms.append_all(quote! {
+                            Self::#variant_name(#(#field_names,)*) => {
+                                V::from(#disc).encode(w);
+                                #encode_fields
+                            }
+                        });
+                    }
+                    Fields::Unit => {
+                        type1_arms.append_all(quote!(Self::#variant_name => #encoding_type::from(#disc).encode(w),));
+                        type2_arms.append_all(quote!(Self::#variant_name => V::from(#disc).encode(w),));
+                    },
+                }
+            }
 
             Ok(quote! {
-                #[allow(unused_imports, unreachable_code)]
-                impl #impl_generics ::valence_protocol::__private::Encode for #input_name #ty_generics
+                impl #impl_generics binary::Encode for #input_name #ty_generics
                 #where_clause
                 {
-                    fn encode(&self, mut _w: impl ::std::io::Write) -> ::valence_protocol::__private::Result<()> {
-                        use ::valence_protocol::__private::{Encode, VarInt, Context};
+                    fn encode(&self, w: &mut binary::Writer) {
+                        use binary::*;
 
                         match self {
-                            #encode_arms
+                            #type1_arms
+                            _ => unreachable!(),
+                        }
+                    }
+                }
+
+                impl #impl_generics binary::EnumEncoder for #input_name #ty_generics
+                #where_clause
+                {
+                    fn write<V: binary::Variant>(&self, w: &mut binary::Writer) {
+                        use binary::*;
+
+                        match self {
+                            #type2_arms
                             _ => unreachable!(),
                         }
                     }

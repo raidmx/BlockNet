@@ -2,16 +2,13 @@
 use proc_macro::TokenStream as StdTokenStream;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use syn::{
-    parse_quote, Attribute, GenericParam, Generics, Lifetime, LifetimeParam, LitInt, Result,
-    Variant,
-};
+use syn::{parse_quote, Attribute, Expr, GenericParam, Generics, Lifetime, LifetimeParam, Result, Variant};
 
 mod encode;
 mod decode;
 mod packet;
 
-#[proc_macro_derive(Encode, attributes(packet))]
+#[proc_macro_derive(Encode, attributes(encoding))]
 pub fn derive_encode(item: StdTokenStream) -> StdTokenStream {
     match encode::derive_encode(item.into()) {
         Ok(tokens) => tokens.into(),
@@ -19,7 +16,7 @@ pub fn derive_encode(item: StdTokenStream) -> StdTokenStream {
     }
 }
 
-#[proc_macro_derive(Decode, attributes(packet))]
+#[proc_macro_derive(Decode, attributes(encoding))]
 pub fn derive_decode(item: StdTokenStream) -> StdTokenStream {
     match decode::derive_decode(item.into()) {
         Ok(tokens) => tokens.into(),
@@ -27,7 +24,7 @@ pub fn derive_decode(item: StdTokenStream) -> StdTokenStream {
     }
 }
 
-#[proc_macro_derive(Packet, attributes(packet))]
+#[proc_macro_derive(Packet)]
 pub fn derive_packet(item: StdTokenStream) -> StdTokenStream {
     match packet::derive_packet(item.into()) {
         Ok(tokens) => tokens.into(),
@@ -35,15 +32,41 @@ pub fn derive_packet(item: StdTokenStream) -> StdTokenStream {
     }
 }
 
+fn get_encoding_type(attrs: &Vec<Attribute>) -> Option<Expr> {
+    let mut encoding_type = None;
+
+    for attr in attrs {
+        if attr.path().is_ident("encoding") {
+            if let Err(_) = attr.parse_nested_meta(|meta| {
+                if meta.path.is_ident("type") {
+                    encoding_type = Some(meta.value()?.parse::<Expr>()?);
+                }
+                Ok(())
+            }) {
+                return None;
+            }
+        }
+    }
+
+    encoding_type
+}
+
 fn pair_variants_with_discriminants(
     variants: impl IntoIterator<Item = Variant>,
-) -> Result<Vec<(i32, Variant)>> {
+) -> Result<Vec<(isize, Variant)>> {
     let mut discriminant = 0;
     variants
         .into_iter()
         .map(|v| {
-            if let Some(i) = parse_tag_attr(&v.attrs)? {
-                discriminant = i;
+            if let Some(i) = v.discriminant.as_ref() {
+                discriminant = i
+                    .1
+                    .to_token_stream()
+                    .to_string()
+                    .chars()
+                    .filter(|c| !c.is_ascii_whitespace())
+                    .collect::<String>()
+                    .parse::<isize>().unwrap();
             }
 
             let pair = (discriminant, v);
@@ -51,27 +74,6 @@ fn pair_variants_with_discriminants(
             Ok(pair)
         })
         .collect::<Result<_>>()
-}
-
-fn parse_tag_attr(attrs: &[Attribute]) -> Result<Option<i32>> {
-    for attr in attrs {
-        if attr.path().is_ident("packet") {
-            let mut res = 0;
-
-            attr.parse_nested_meta(|meta| {
-                if meta.path.is_ident("tag") {
-                    res = meta.value()?.parse::<LitInt>()?.base10_parse::<i32>()?;
-                    Ok(())
-                } else {
-                    Err(meta.error("unrecognized argument"))
-                }
-            })?;
-
-            return Ok(Some(res));
-        }
-    }
-
-    Ok(None)
 }
 
 /// Adding our lifetime to the generics before calling `.split_for_impl()` would

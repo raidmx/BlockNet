@@ -19,7 +19,10 @@ impl<'a, P: Prefix> Decode<'a> for RefString<'a, P> {
         }
 
         match std::str::from_utf8(&r[0..len]) {
-            Ok(val) => Some(RefString::new(val)),
+            Ok(val) => {
+                r.advance(len);
+                Some(RefString::new(val))
+            },
             Err(_) => None
         }
     }
@@ -61,7 +64,10 @@ impl<'a> Decode<'a> for &'a str {
         let len = VarU32::decode(r)?.into();
         
         match std::str::from_utf8(&r[..len]) {
-            Ok(v) => Some(v),
+            Ok(v) => {
+                r.advance(len);
+                Some(v)
+            },
             Err(_) => None
         }
     }
