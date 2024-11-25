@@ -35,7 +35,8 @@ pub trait Decode<'a> : Sized + Debug {
     fn decode(r: &mut Reader<'a>) -> Option<Self>;
 }
 
-/// EnumEncoder is a trait implemented by Enums to serialize and deserialize enumerations
+/// EnumEncoder is a trait implemented by Enums to serialize and deserialize enum variants.
+/// It uses the Variant trait to specify what type of integer to use for serializing data.
 pub trait EnumEncoder<V: Variant> : Debug + Sized {
     fn encode(&self, w: &mut Writer);
     fn decode(r: &mut Reader) -> Option<Self>;

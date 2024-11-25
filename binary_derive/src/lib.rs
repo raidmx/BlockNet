@@ -6,14 +6,10 @@ use std::collections::HashSet;
 use syn::spanned::Spanned;
 use syn::{parse_macro_input, Data, DeriveInput, Fields, FieldsNamed, PathArguments, Type};
 
-/// Implements `Binary` for a type named `T`.
+/// Implements [`Encode`] and [`Decode`] for a type named `T`.
 ///
 /// For a struct, it does so by looking at its fields and writing/reading them in the order they are
-/// defined. All of these fields must also implement `Binary`
-///
-/// Vectors are a special case. They do not implement Readable or Writable by themselves, but can
-/// still be written of its content does. These vectors do require an attribute to specify what type
-/// to use to write the length of the vector. This type needs to be convertable from and to usize.
+/// defined. All of these fields must also implement `Encode` and `Decode`
 ///
 /// The first such attribute is `#[len_type(L)]`, where `L` i the type to use for the vector
 /// length. It should be put above the vector in question.
@@ -46,7 +42,7 @@ use syn::{parse_macro_input, Data, DeriveInput, Fields, FieldsNamed, PathArgumen
 ///     pub vec: Vec<String>
 /// }
 /// ```
-/// Note that the vector length is written with a u16 here. The field is named `__`, but it can have
+/// Note that the vector length is written with an u16 here. The field is named `__`, but it can have
 /// any name (as it will be removed anyway). This also means that multiple len_for fields can be
 /// named the same.
 ///
@@ -73,25 +69,25 @@ use syn::{parse_macro_input, Data, DeriveInput, Fields, FieldsNamed, PathArgumen
 ///
 /// Sometimes, enum discriminants are written with a different type for the same enum in the
 /// minecraft binary (for some reason). This is also supported. When using this macro on an enum
-/// `T`, it automatically implements `EnumEncoder<N>` for that enum, where `N` refers to the new type
-/// used for the discriminant. To write an enum with a specific discriminant type, `#[enum_header(N)]`
+/// `T`, it automatically implements `EnumEncoder<P>` for that enum, where `P` refers to the Prefix type
+/// used for the discriminant. To write an enum with a specific discriminant type, `#[enum_header(P)]`
 /// can be used.
 /// ```ignore
 /// use binary::proto;
 ///
 /// #[proto]
 /// pub struct PacketWithEnum {
-///     #[enum_header(u16)]
+///     #[enum_header(U16<LE>)]
 ///     pub my_enum: MyEnum,
 /// }
 ///
-/// #[proto(u8)]
+/// #[proto(U8)]
 /// pub enum MyEnum {
 ///     V1, V2
 /// }
 /// ```
-/// In this example `MyEnum`, which is usually written with `u8` when no `enum_header` is specified,
-/// will be written using a `u16`.
+/// In this example `MyEnum`, which is usually written with `U8` when no `enum_header` is specified,
+/// will be written using a `U16<LE>`.
 #[proc_macro_attribute]
 pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
     let mut input = parse_macro_input!(_item as DeriveInput);
@@ -122,12 +118,14 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
                 Fields::Unit => return quote! {
                     #input
 
-                    impl binary::Binary for #ident {
+                    impl binary::Encode for #ident {
                         #[inline]
-                        fn serialize(&self, writer: &mut bytes::BytesMut) {}
+                        fn encode(&self, w: &mut binary::Writer) {}
+                    }
 
+                    impl binary::Decode<'_> for #ident {
                         #[inline]
-                        fn deserialize(reader: &mut bytes::Bytes) -> Option<Self> {
+                        fn decode(r: &mut binary::Reader<'a>) -> Option<Self> {
                             Some(#ident)
                         }
                     }
@@ -200,12 +198,8 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
                                         );
                                     }
 
-                                    read_body_stream.append_all(quote!(let #len_var_name = #field_type::deserialize(reader)?;));
-
-                                    write_stream.append_all(quote!{
-                                        let len = #field_type::from_usize(self.#vec_name.len());
-                                        len.serialize(writer);
-                                    });
+                                    read_body_stream.append_all(quote!(let #len_var_name = #field_type::decode(r)?.into();));
+                                    write_stream.append_all(quote!(#field_type::from(self.#vec_name.len()).encode(w);));
 
                                     vector_size_map.insert(vec_name.to_string());
                                     removal_queue.push(field_i);
@@ -238,12 +232,8 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
                                     let len_var_name = format_ident!("_{}_len", field_ident);
                                     let field_type = syn::parse2::<Type>(type_name.to_token_stream()).unwrap();
 
-                                    read_body_stream.append_all(quote!(let #len_var_name = #field_type::deserialize(reader)?;));
-
-                                    write_stream.append_all(quote!{
-                                        let len = #field_type::from_usize(self.#field_ident.len());
-                                        len.serialize(writer);
-                                    });
+                                    read_body_stream.append_all(quote!(let #len_var_name = #field_type::decode(r)?.into();));
+                                    write_stream.append_all(quote!(#field_type::from(self.#field_ident.len()).encode(w);));
 
                                     vector_size_map.insert(field_ident.to_string());
                                     attr_remove_queue.push(attr_i);
@@ -288,12 +278,8 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
                         if !vector_size_map.contains(field_ident.to_string().as_str()) {
                             vector_size_map.insert(field_ident.to_string());
 
-                            read_body_stream.append_all(quote!(let #len_var_name = w32::deserialize(reader)?;));
-
-                            write_stream.append_all(quote! {
-                                let len = w32::from_usize(self.#field_ident.len());
-                                len.serialize(writer);
-                            });
+                            read_body_stream.append_all(quote!(let #len_var_name = VarU32::deserialize(r)?.into();));
+                            write_stream.append_all(quote!(VarU32::from(self.#field_ident.len()).encode(w);));
                         }
 
                         // This part adds the actual writing/reading of the content of the vector.
@@ -303,22 +289,11 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
 
                             write_stream.append_all(quote! {
                                 for elem in &self.#field_ident {
-                                    elem.serialize(writer);
+                                    elem.encode(w);
                                 }
                             });
 
-                            read_body_stream.append_all(quote! {
-                                let len = #len_var_name.to_usize();
-                                let mut #field_ident = Vec::with_capacity(len);
-
-                                for _ in 0..len {
-                                    match #inner_type::deserialize(reader) {
-                                        Some(value) => #field_ident.push(value),
-                                        None => return None,
-                                    }
-                                }
-                            });
-
+                            read_body_stream.append_all(quote!(let #field_ident = (0..#len_var_name).map(|_| #inner_type::decode(r)).collect::<Option<_>>()?;));
                             read_inner_stream.append_all(quote!(#field_ident,));
                         }
                         continue 'field_loop;
@@ -332,11 +307,11 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
                 }
 
                 if let Some((_, et)) = enum_header_attr {
-                    write_stream.append_all(quote!(<#field_type as EnumEncoder<#et>>::encode(&self.#field_ident, writer);));
-                    read_body_stream.append_all(quote!(let #field_ident = <#field_type as EnumEncoder<#et>>::decode(reader)?;));
+                    write_stream.append_all(quote!(<#field_type as EnumEncoder<#et>>::encode(&self.#field_ident, w);));
+                    read_body_stream.append_all(quote!(let #field_ident = <#field_type as EnumEncoder<#et>>::decode(r)?;));
                 } else {
-                    write_stream.append_all(quote!(self.#field_ident.serialize(writer);));
-                    read_body_stream.append_all(quote!(let #field_ident = #field_type::deserialize(reader)?;));
+                    write_stream.append_all(quote!(self.#field_ident.encode(w);));
+                    read_body_stream.append_all(quote!(let #field_ident = #field_type::decode(r)?;));
                 }
 
                 read_inner_stream.append_all(quote!(#field_ident,));
@@ -462,8 +437,8 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
                     let field_name = format_ident!("e_{}", field_num);
                     let field_type = &field.ty;
                     enum_content.append_all(quote!(#field_name,));
-                    enum_content_write.append_all(quote!(<#field_type as Binary>::serialize(#field_name, writer);));
-                    enum_content_read.append_all(quote!(<#field_type as Binary>::deserialize(reader)?,));
+                    enum_content_write.append_all(quote!(<#field_type as Encode>::encode(#field_name, w);));
+                    enum_content_read.append_all(quote!(#field_type::decode(r)?,));
                 }
                 if !enum_content.is_empty() {
                     enum_content = quote!((#enum_content));
@@ -474,7 +449,7 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
 
                 write_match_stream.append_all(quote! {
                     #ident::#variant_name #enum_content => {
-                        N::write_isize(writer, #variant_number_token);
+                        P::from(#variant_number_token).encode(w);
                         #enum_content_write
                     },
                 });
@@ -488,10 +463,10 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
 
             // Write the default Writable and Readable function bodies.
             write_stream.append_all(quote! {
-                <#ident as EnumEncoder<#type_name>>::encode(self, writer)
+                <#ident as EnumEncoder<#type_name>>::encode(self, w)
             });
             read_stream.append_all(quote! {
-                <#ident as EnumEncoder<#type_name>>::decode(reader)
+                <#ident as EnumEncoder<#type_name>>::decode(r)
             });
 
             if read_fallback_stream.is_empty() {
@@ -499,8 +474,8 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
             }
 
             extra_stream.append_all(quote! {
-                impl<N: binary::Numeric> binary::EnumEncoder<N> for #ident {
-                    fn encode(&self, writer: &mut bytes::BytesMut) {
+                impl<P: binary::Prefix> binary::EnumEncoder<P> for #ident {
+                    fn encode(&self, w: &mut binary::Writer) {
                         use binary::*;
                         match self {
                             #write_match_stream
@@ -508,9 +483,9 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
                         }
                     }
 
-                    fn decode(reader: &mut bytes::Bytes) -> Option<Self> {
+                    fn decode(r: &mut binary::Reader) -> Option<Self> {
                         use binary::*;
-                        match N::read_isize(reader)? {
+                        match P::decode(r)?.into() {
                             #read_match_stream
                             #read_fallback_stream
                         }
@@ -530,13 +505,15 @@ pub fn proto(_attr: TokenStream, _item: TokenStream) -> TokenStream {
     let tok = quote! {
         #input
 
-        impl binary::Binary for #ident {
-            fn serialize(&self, writer: &mut bytes::BytesMut) {
+        impl binary::Encode for #ident {
+            fn encode(&self, w: &mut binary::Writer) {
                 use binary::*;
                 #write_stream
             }
+        }
 
-            fn deserialize(reader: &mut bytes::Bytes) -> Option<Self> {
+        impl binary::Decode<'_> for #ident {
+            fn decode(r: &mut binary::Reader) -> Option<Self> {
                 use binary::*;
                 #read_stream
             }
