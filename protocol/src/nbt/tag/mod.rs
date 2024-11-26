@@ -42,9 +42,10 @@ macro_rules! impl_tag {
 macro_rules! generate_tags {
     ($($variant:ident => $type:ty, $as:ident, $as_mut:ident),*) => {
         /// TagId is an enumeration of Tag Ids for different types of Tags.
-        #[derive(Debug, PartialEq, Clone, Copy)]
+        #[derive(Default, Debug, PartialEq, Clone, Copy)]
         #[repr(u8)]
         pub enum TagId {
+            #[default]
             End,
             $($variant,)*
         }
@@ -61,8 +62,10 @@ macro_rules! generate_tags {
 
         /// Tag is an implementation of NBT Tag. Each Tag Object has a unique identifier [`TagId`] associated
         /// with it.
-        #[derive(PartialEq, Clone)]
+        #[derive(Default, PartialEq, Clone)]
         pub enum Tag<'a> {
+            #[default]
+            End,
             $($variant($type),)*
         }
 

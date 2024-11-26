@@ -1,5 +1,5 @@
 use num_derive::{FromPrimitive, ToPrimitive};
-use binary::{Array, U8};
+use binary::Array;
 use derive::{Decode, Encode};
 
 #[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
@@ -51,5 +51,5 @@ pub struct AbilityData {
     pub entity_unique_id: i64,
     pub player_permissions: u8,
     pub command_permission: u8,
-    pub layers: Array<U8, AbilityLayer>,
+    pub layers: Array<u8, AbilityLayer>,
 }

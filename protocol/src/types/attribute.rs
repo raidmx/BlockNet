@@ -1,15 +1,19 @@
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::{FromPrimitive, ToPrimitive};
+use binary::{Decode, Encode, Reader, Writer};
 use derive::{Decode, Encode};
+use crate::types::SliceU32;
 
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = i32)]
 pub enum AttributeModifierOperand {
     Min,
     Max,
     Current,
 }
 
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = i32)]
 pub enum AttributeModifierOperation {
     Addition,
     MultiplyBase,
@@ -17,80 +21,62 @@ pub enum AttributeModifierOperation {
     Cap,
 }
 
-#[derive(Debug, Clone, Default, Encode, Decode)]
-pub struct AttributeValue {
-    pub name: String,
+#[derive(Debug, Clone, Default)]
+pub struct AttributeValue<'a> {
+    pub name: &'a str,
     pub min: f32,
     pub max: f32,
     pub value: f32,
 }
 
-#[derive(Debug, Clone, Default)]
-pub struct Attribute {
-    pub value: AttributeValue,
-    pub default: f32,
-    pub modifiers: Vec<AttributeModifier>,
-}
-
-impl Attribute {
-    pub fn write(&self, writer: &mut Writer) {
-        writer.f32(self.value.min);
-        writer.f32(self.value.max);
-        writer.f32(self.value.value);
-        writer.f32(self.default);
-        writer.string(self.value.name.as_str());
-        writer.var_u32(self.modifiers.len() as u32);
-        self.modifiers
-            .iter()
-            .for_each(|modifier| modifier.write(writer));
-    }
-
-    pub fn read(reader: &mut Reader) -> Self {
-        let mut attribute = Self::default();
-        attribute.value = AttributeValue {
-            min: reader.f32(),
-            max: reader.f32(),
-            value: reader.f32(),
-            ..Default::default()
-        };
-        attribute.default = reader.f32();
-        attribute.value.name = reader.string();
-        attribute.modifiers = (0..reader.var_u32())
-            .map(|_| AttributeModifier::read(reader))
-            .collect();
-
-        attribute
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct AttributeModifier {
-    pub id: String,
-    pub name: String,
+#[derive(Debug, Clone, Encode, Decode)]
+pub struct AttributeModifier<'a> {
+    pub id: &'a str,
+    pub name: &'a str,
     pub amount: f32,
     pub operation: AttributeModifierOperation,
     pub operand: AttributeModifierOperand,
     pub serializable: bool,
 }
 
-impl AttributeModifier {
-    pub fn write(&self, writer: &mut Writer) {
-        writer.string(self.id.as_str());
-        writer.string(self.name.as_str());
-        writer.f32(self.amount);
-        writer.i32(self.operation.to_i32().unwrap());
-        writer.i32(self.operand.to_i32().unwrap());
-        writer.bool(self.serializable);
-    }
+#[derive(Debug, Clone, Default)]
+pub struct Attribute<'a> {
+    pub value: AttributeValue<'a>,
+    pub default: f32,
+    pub modifiers: SliceU32<AttributeModifier<'a>>,
+}
 
-    pub fn read(reader: &mut Reader) -> Self {
-        Self {
-            id: reader.string(),
-            name: reader.string(),
-            amount: reader.f32(),
-            operation: AttributeModifierOperation::from_i32(reader.i32()).unwrap(),
-            operand: AttributeModifierOperand::from_i32(reader.i32()).unwrap(),
-            serializable: reader.bool(),
-        }
+impl<'a> Encode for Attribute<'a> {
+    fn encode(&self, w: &mut Writer) {
+        self.value.min.encode(w);
+        self.value.max.encode(w);
+        self.value.value.encode(w);
+        self.default.encode(w);
+        self.value.name.encode(w);
+        self.modifiers.encode(w);
+    }
+}
+
+impl<'a> Decode<'a> for Attribute<'a> {
+    fn decode(r: &mut Reader<'a>) -> Option<Self> {
+        let min = f32::decode(r)?;
+        let max = f32::decode(r)?;
+        let value = f32::decode(r)?;
+        let default = f32::decode(r)?;
+        let name = <&str>::decode(r)?;
+        let modifiers = SliceU32::decode(r)?;
+
+        let attribute_value = AttributeValue {
+            name,
+            min,
+            max,
+            value
+        };
+
+        Some(Self {
+            value: attribute_value,
+            default,
+            modifiers
+        })
     }
 }

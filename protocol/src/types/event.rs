@@ -1,9 +1,9 @@
-use crate::proto::ints::{VarI32, VarI64};
-use zuri_net_derive::proto;
+use binary::{VarI32, VarI64};
+use derive::{Decode, Encode};
 
-#[proto(VarI32)]
 #[repr(i32)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = VarI32)]
 pub enum EventType {
     AchievementAwarded(AchievementAwarded),
     EntityInteract(EntityInteract),
@@ -38,40 +38,35 @@ pub enum EventType {
     CarefulRestoration(CarefulRestoration),
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct StriderRiddenInLavaInOverworld {
     /// It is unclear what this field does.
     pub use_player_id: u8,
     // The structure of this event is unknown.
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct CodeBuilderScoreboard {
     /// It is unclear what this field does.
     pub use_player_id: u8,
     // The structure of this event is unknown.
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct CodeBuilderRuntimeAction {
     /// It is unclear what this field does.
     pub use_player_id: u8,
     // The structure of this event is unknown.
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct PiglinBarter {
     /// It is unclear what this field does.
     pub use_player_id: u8,
     // The structure of this event is unknown.
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct TargetBlockHit {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -79,16 +74,14 @@ pub struct TargetBlockHit {
 }
 
 /// The purpose of this event is unknown.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct ExtractHoney {
     /// It is unclear what this field does.
     pub use_player_id: u8,
 }
 
 /// Used to update a raids progress client side.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct RaidUpdate {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -98,16 +91,14 @@ pub struct RaidUpdate {
 }
 
 /// The purpose of this event is unknown.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct EntityDefinitionTrigger {
     /// It is unclear what this field does.
     pub use_player_id: u8,
     pub event_name: String,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct EntityInteract {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -117,8 +108,7 @@ pub struct EntityInteract {
     pub entity_colour: u8,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct CauldronInteract {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -126,8 +116,7 @@ pub struct CauldronInteract {
     pub item_id: VarI32,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct CauldronUsed {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -136,8 +125,7 @@ pub struct CauldronUsed {
     pub fill_level: VarI32,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct ComposterInteract {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -145,8 +133,7 @@ pub struct ComposterInteract {
     pub item_id: VarI32,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct BossKilled {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -155,16 +142,14 @@ pub struct BossKilled {
     pub interaction_entity_type: VarI32,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct AchievementAwarded {
     /// It is unclear what this field does.
     pub use_player_id: u8,
     pub achievement_id: VarI32,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct AgentCommand {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -175,15 +160,13 @@ pub struct AgentCommand {
     pub output: String,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct AgentCreated {
     /// It is unclear what this field does.
     pub use_player_id: u8,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct SlashCommandExecuted {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -193,8 +176,7 @@ pub struct SlashCommandExecuted {
     pub output_messages: String,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct MobKilled {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -207,8 +189,7 @@ pub struct MobKilled {
 }
 
 /// Informs the receiver on movement data.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct MovementAnomaly {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -221,8 +202,7 @@ pub struct MovementAnomaly {
 }
 
 /// Sent by the server to correct client-side movement.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct MovementCorrected {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -234,8 +214,7 @@ pub struct MovementCorrected {
 }
 
 /// This event is self-explanatory.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct BellUsed {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -243,8 +222,7 @@ pub struct BellUsed {
 }
 
 /// Sent when a fish is bucketed.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct FishBucketed {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -255,8 +233,7 @@ pub struct FishBucketed {
 }
 
 /// Sent when a mob is born.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct MobBorn {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -265,16 +242,14 @@ pub struct MobBorn {
     pub colour: u8,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct PlayerWaxedOrUnwaxedCopper {
     /// It is unclear what this field does.
     pub use_player_id: u8,
 }
 
 /// Sent when a pet dies. This event is deprecated.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct PetDied {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -285,8 +260,7 @@ pub struct PetDied {
     pub pet_entity_type: VarI32,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct PlayerDied {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -296,16 +270,14 @@ pub struct PlayerDied {
     pub in_raid: bool,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct PortalBuilt {
     /// It is unclear what this field does.
     pub use_player_id: u8,
     pub dimension_id: VarI32,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct PortalUsed {
     /// It is unclear what this field does.
     pub use_player_id: u8,
@@ -314,22 +286,19 @@ pub struct PortalUsed {
 }
 
 /// This event is self-explanatory.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct SneakCloseToSculkSensor {
     /// It is unclear what this field does.
     pub use_player_id: u8,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct CarefulRestoration {
     /// It is unclear what this field does.
     pub use_player_id: u8,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct PatternRemoved {
     /// It is unclear what this field does.
     pub use_player_id: u8,

@@ -1,9 +1,8 @@
-use crate::proto::ints::VarU32;
 use num_derive::{FromPrimitive, ToPrimitive};
-use zuri_net_derive::proto;
+use derive::{Decode, Encode};
 
-#[proto(VarU32)]
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = VarU32)]
 pub enum SoundEvent {
     ItemUseOn,
     Hit,

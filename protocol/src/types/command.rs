@@ -1,9 +1,6 @@
 use num_derive::{FromPrimitive, ToPrimitive};
+use derive::{Decode, Encode};
 use uuid::Uuid;
-
-use zuri_net_derive::proto;
-
-use crate::proto::ints::VarU32;
 
 #[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
 pub enum CommandArg {
@@ -40,8 +37,8 @@ pub enum CommandConstraint {
     HostPermissions,
 }
 
-#[proto(VarU32)]
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = VarU32)]
 pub enum CommandOriginType {
     Player,
     Block,
@@ -61,8 +58,8 @@ pub enum CommandOriginType {
     Executor,
 }
 
-#[proto(u8)]
-#[derive(Debug, Copy, Clone, PartialEq, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Copy, Clone, PartialEq, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum CommandOutputType {
     None,
     LastOutput,
@@ -71,8 +68,8 @@ pub enum CommandOutputType {
     DataSet,
 }
 
-#[proto(VarU32)]
-#[derive(Debug, Copy, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Copy, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = VarU32)]
 pub enum CommandPermissionLevel {
     Normal,
     GameDirectors,
@@ -82,8 +79,8 @@ pub enum CommandPermissionLevel {
     Internal,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum SoftEnumAction {
     Add,
     Remove,
@@ -105,25 +102,22 @@ pub struct CommandEnum {
     pub value_indices: Vec<u32>,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct CommandEnumConstraint {
     pub enum_option: String,
     pub enum_name: String,
-    #[len_type(VarU32)]
     pub constraints: Vec<CommandEnumConstraints>,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum CommandEnumConstraints {
     CheatsEnabled,
     OperatorPermissions,
     HostPermissions,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct CommandOrigin {
     pub origin: CommandOriginType,
     pub uuid: Uuid,
@@ -131,11 +125,9 @@ pub struct CommandOrigin {
     pub player_unique_id: i64,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct CommandOutputMessage {
     pub success: bool,
     pub message: String,
-    #[len_type(VarU32)]
     pub parameters: Vec<String>,
 }

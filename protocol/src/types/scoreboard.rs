@@ -1,54 +1,7 @@
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::{FromPrimitive, ToPrimitive};
-use zuri_net_derive::proto;
-
-use crate::proto::io::{Reader, Writer};
-
-#[proto(u8)]
-#[derive(Clone, Copy, Debug, PartialEq, FromPrimitive, ToPrimitive)]
-pub enum ScoreboardAction {
-    Modify,
-    Remove,
-}
-
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
-pub enum ScoreboardIdentity {
-    Player = 1,
-    Entity = 2,
-    FakePlayer = 3,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, FromPrimitive, ToPrimitive)]
-pub enum ScoreboardIdentityAction {
-    Register,
-    Clear,
-}
-
-#[derive(Debug, Clone)]
-pub enum ScoreboardSlot {
-    List,
-    Sidebar,
-    BelowName,
-}
-
-impl ScoreboardSlot {
-    pub fn from_string(s: &str) -> Option<ScoreboardSlot> {
-        match s {
-            "list" => Some(ScoreboardSlot::List),
-            "sidebar" => Some(ScoreboardSlot::Sidebar),
-            "belowname" => Some(ScoreboardSlot::BelowName),
-            _ => None,
-        }
-    }
-
-    pub fn to_string(&self) -> &'static str {
-        match self {
-            ScoreboardSlot::List => "list",
-            ScoreboardSlot::Sidebar => "sidebar",
-            ScoreboardSlot::BelowName => "belowname",
-        }
-    }
-}
+use binary::{Decode, Encode, Reader, VarI64, Writer};
+use derive::{Decode, Encode};
 
 #[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
 pub enum ScoreboardSortOrder {
@@ -56,81 +9,101 @@ pub enum ScoreboardSortOrder {
     Descending,
 }
 
-#[derive(Debug, Clone)]
-pub struct ScoreboardEntry {
-    pub entry_id: i64,
-    pub objective_name: String,
-    pub score: i32,
-    pub identity_type: ScoreboardIdentity,
-    pub entity_unique_id: i64,
-    pub display_name: String,
+#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
+pub enum ScoreboardSlot {
+    List,
+    Sidebar,
+    BelowName,
 }
 
-impl ScoreboardEntry {
-    pub fn write(&self, writer: &mut Writer, action: ScoreboardAction) {
-        writer.var_i64(self.entry_id);
-        writer.string(self.objective_name.as_str());
-        writer.i32(self.score);
-        if action == ScoreboardAction::Modify {
-            writer.u8(self.identity_type.to_u8().unwrap());
-            match self.identity_type {
-                ScoreboardIdentity::Entity | ScoreboardIdentity::Player => {
-                    writer.var_i64(self.entity_unique_id);
-                }
-                _ => {
-                    writer.string(self.display_name.as_str());
-                }
-            }
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = u8)]
+pub enum ScoreboardAction {
+    Modify,
+    Remove,
+}
+
+#[repr(u8)]
+#[derive(Default, Debug, Clone, Encode, Decode)]
+#[encoding(type = u8)]
+pub enum ScoreboardIdentity<'a> {
+    #[default]
+    None,
+    Player(VarI64),
+    Entity(VarI64),
+    FakePlayer(&'a str),
+}
+
+#[derive(Debug, Clone)]
+pub struct ScoreboardEntry<'a> {
+    pub entry_id: VarI64,
+    pub objective_name: &'a str,
+    pub score: i32,
+    pub identity_type: ScoreboardIdentity<'a>,
+}
+
+impl<'a> ScoreboardEntry<'a> {
+    pub fn write(&self, w: &mut Writer, action: ScoreboardAction) {
+        self.entry_id.encode(w);
+        self.objective_name.encode(w);
+        self.score.encode(w);
+
+        if let ScoreboardAction::Modify = action {
+            self.identity_type.encode(w);
         }
     }
-
-    pub fn read(reader: &mut Reader, action: ScoreboardAction) -> Self {
-        let mut entry = Self {
-            entry_id: reader.var_i64(),
-            objective_name: reader.string(),
-            score: reader.i32(),
-            identity_type: ScoreboardIdentity::Player,
-            display_name: String::new(),
-            entity_unique_id: 0,
-        };
-        if action == ScoreboardAction::Modify {
-            entry.identity_type = ScoreboardIdentity::from_u8(reader.u8()).unwrap();
-            match entry.identity_type {
-                ScoreboardIdentity::Entity | ScoreboardIdentity::Player => {
-                    entry.entity_unique_id = reader.var_i64();
-                }
-                _ => {
-                    entry.display_name = reader.string();
-                }
-            }
+    
+    pub fn read(r: &mut Reader, action: ScoreboardAction) -> Option<Self> {
+        let entry_id = VarI64::decode(r)?;
+        let objective_name = <&str>::decode(r)?;
+        let score = i32::decode(r)?;
+        let mut identity_type = ScoreboardIdentity::None;
+        
+        if let ScoreboardAction::Modify = action {
+            identity_type = ScoreboardIdentity::decode(r)?;   
         }
-
-        entry
+        
+        Some(Self {
+            entry_id,
+            objective_name,
+            score,
+            identity_type
+        })
     }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = u8)]
+pub enum ScoreboardIdentityAction {
+    Register,
+    Clear,
 }
 
 #[derive(Debug, Clone)]
 pub struct ScoreboardIdentityEntry {
-    pub entry_id: i64,
-    pub entity_unique_id: i64,
+    pub entry_id: VarI64,
+    pub entity_unique_id: VarI64,
 }
 
 impl ScoreboardIdentityEntry {
-    pub fn write(&self, writer: &mut Writer, action: ScoreboardIdentityAction) {
-        writer.var_i64(self.entry_id);
-        if action == ScoreboardIdentityAction::Register {
-            writer.var_i64(self.entity_unique_id);
+    pub fn write(&self, w: &mut Writer, action: ScoreboardIdentityAction) {
+        self.entry_id.encode(w);
+        
+        if let ScoreboardIdentityAction::Register = action {
+            self.entity_unique_id.encode(w);
         }
     }
-
-    pub fn read(reader: &mut Reader, action: ScoreboardIdentityAction) -> Self {
-        Self {
-            entry_id: reader.var_i64(),
-            entity_unique_id: if action == ScoreboardIdentityAction::Register {
-                reader.var_i64()
-            } else {
-                0
-            },
+    
+    pub fn read(r: &mut Reader, action: ScoreboardIdentityAction) -> Option<Self> {
+        let entry_id = VarI64::decode(r)?;
+        let mut entity_unique_id = VarI64::default();
+        
+        if let ScoreboardIdentityAction::Register = action {
+            entity_unique_id = VarI64::decode(r)?;
         }
+        Some(Self {
+            entry_id,
+            entity_unique_id
+        })
     }
 }

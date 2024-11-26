@@ -1,10 +1,9 @@
 use bytes::BytesMut;
 use num_derive::{FromPrimitive, ToPrimitive};
-
-use zuri_nbt::{encoding::LittleEndian, NBTTag};
-use zuri_net_derive::proto;
-
-use crate::proto::io::{Readable, Reader, Writable, Writer};
+use binary::{Decode, Encode, Reader, VarI32, VarU32, Writer};
+use derive::{Decode, Encode};
+use crate::nbt::{LittleEndian, Tag, NBT};
+use crate::types::SliceU32;
 
 #[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
 pub enum UseItemAction {
@@ -13,8 +12,8 @@ pub enum UseItemAction {
     BreakBlock,
 }
 
-#[proto(i32)]
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = i32)]
 pub enum UseItemMethod {
     EquipArmour,
     Eat,
@@ -40,206 +39,209 @@ pub enum UseItemOnEntityAction {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct ItemInstance {
-    pub stack_network_id: i32,
-    pub stack: ItemStack,
+pub struct ItemInstance<'a> {
+    pub stack_network_id: VarI32,
+    pub stack: ItemStack<'a>,
 }
 
-impl Writable for ItemInstance {
-    fn write(&self, writer: &mut Writer) {
-        writer.var_i32(self.stack.network_id);
-        if self.stack.network_id == 0 {
+impl<'a> Encode for ItemInstance<'a> {
+    fn encode(&self, w: &mut Writer) {
+        self.stack.network_id.encode(w);
+        if *self.stack.network_id == 0 {
             // The item was air, so there's no more data to follow. Return immediately.
             return;
         }
 
-        writer.u16(self.stack.count);
-        writer.var_u32(self.stack.metadata_value);
+        self.stack.count.encode(w);
+        self.stack.metadata_value.encode(w);
 
-        let has_net_id = self.stack_network_id != 0;
-        writer.bool(has_net_id);
+        let has_net_id = *self.stack_network_id != 0;
+        has_net_id.encode(w);
+
         if has_net_id {
-            writer.var_i32(self.stack_network_id);
+            self.stack_network_id.encode(w);
         }
 
-        writer.var_i32(self.stack.block_runtime_id);
+        self.stack.block_runtime_id.encode(w);
 
         let mut extra_data = Writer::default();
-        if let NBTTag::Compound(m) = &self.stack.nbt_data {
+
+        if let Tag::Compound(m) = &self.stack.nbt_data {
             if !m.is_empty() {
-                extra_data.i16(-1);
-                extra_data.u8(1);
-                extra_data.nbt(&self.stack.nbt_data, LittleEndian);
+                -1_i16.encode(&mut extra_data);
+                1_u8.encode(&mut extra_data);
+                self.stack.nbt_data.encode(&mut extra_data);
             } else {
-                extra_data.i16(0);
+                0_i16.encode(&mut extra_data);
             }
         } else {
             panic!("nbt data is not a compound tag");
         }
 
-        extra_data.u32(self.stack.can_be_placed_on.len() as u32);
-        self.stack
-            .can_be_placed_on
-            .iter()
-            .for_each(|b| extra_data.string_utf(b.as_str()));
+        self.stack.can_be_placed_on.encode(&mut extra_data);
+        self.stack.can_break.encode(&mut extra_data);
 
-        extra_data.u32(self.stack.can_break.len() as u32);
-        self.stack
-            .can_break
-            .iter()
-            .for_each(|b| extra_data.string_utf(b.as_str()));
-
-        if self.stack.network_id == writer.shield_id() {
-            extra_data.i64(0);
+        // TODO: Shield Runtime ID
+        if *self.stack.network_id == 1 {
+            0_i64.encode(&mut extra_data);
         }
 
-        writer.byte_slice(Into::<BytesMut>::into(extra_data).as_ref());
+        extra_data.encode(w);
     }
 }
 
-impl Readable<ItemInstance> for ItemInstance {
-    fn read(reader: &mut Reader) -> Self {
-        let mut instance = Self {
-            stack: ItemStack {
-                network_id: reader.var_i32(),
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-        if instance.stack.network_id == 0 {
+impl<'a> Decode<'a> for ItemInstance<'a> {
+    fn decode(r: &mut Reader<'a>) -> Option<Self> {
+        let network_id = VarI32::decode(r)?;
+
+        if *network_id == 0 {
             // The item was air, so there's no more data to follow. Return immediately.
-            return Self::default();
+            return Some(Self::default());
         }
 
-        instance.stack.count = reader.u16();
-        instance.stack.metadata_value = reader.var_u32();
-        if reader.bool() {
-            instance.stack_network_id = reader.var_i32();
+        let count = u16::decode(r)?;
+        let metadata_value = VarU32::decode(r)?;
+        let mut stack_network_id = VarI32::new(0);
+
+        if bool::decode(r)? {
+            stack_network_id = VarI32::decode(r)?;
         }
-        instance.stack.block_runtime_id = reader.var_i32();
 
-        let mut extra_data = Reader::from_buf(reader.byte_slice(), reader.shield_id());
+        let block_runtime_id = VarI32::decode(r)?;
 
-        let length = extra_data.i16();
+        let mut extra_data = BytesMut::decode(r)?.freeze();
+        let extra_reader = &mut &extra_data[..];
+
+        let mut nbt_data = NBT::<LittleEndian>::default();
+
+        let length = i16::decode(extra_reader)?;
         if length == -1 {
-            let version = extra_data.u8();
-            match version {
-                1 => instance.stack.nbt_data = extra_data.nbt(LittleEndian),
-                _ => panic!("unknown item user data version {}", version),
+            let version = u8::decode(extra_reader)?;
+
+            if version == 1 {
+                nbt_data = NBT::<LittleEndian>::decode(r)?;
+            } else {
+                panic!("unknown item user data version {}", version);
             }
         } else if length > 0 {
-            instance.stack.nbt_data = extra_data.nbt(LittleEndian);
+            nbt_data = NBT::<LittleEndian>::decode(r)?;
         }
 
-        instance.stack.can_be_placed_on = (0..extra_data.u32())
-            .map(|_| extra_data.string_utf())
-            .collect();
-        instance.stack.can_break = (0..extra_data.u32())
-            .map(|_| extra_data.string_utf())
-            .collect();
+        let can_be_placed_on = SliceU32::decode(r)?;
+        let can_break = SliceU32::decode(r)?;
+        let has_network_id = *network_id == 1; // TODO: Shield Network Id
 
-        if instance.stack.network_id == reader.shield_id() {
-            extra_data.i64();
-        }
-
-        instance
+        let stack = ItemStack {
+            network_id,
+            count,
+            metadata_value,
+            block_runtime_id,
+            nbt_data,
+            can_be_placed_on,
+            can_break,
+            has_network_id
+        };
+        
+        Some(Self {
+            stack_network_id,
+            stack
+        })
     }
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct ItemStack {
-    pub network_id: i32,
-    pub metadata_value: u32,
-    pub block_runtime_id: i32,
+pub struct ItemStack<'a> {
+    pub network_id: VarI32,
+    pub metadata_value: VarU32,
+    pub block_runtime_id: VarI32,
     pub count: u16,
-    pub nbt_data: NBTTag,
-    pub can_be_placed_on: Vec<String>,
-    pub can_break: Vec<String>,
+    pub nbt_data: NBT<'a, LittleEndian>,
+    pub can_be_placed_on: SliceU32<&'a str>,
+    pub can_break: SliceU32<&'a str>,
     pub has_network_id: bool,
 }
 
-impl Writable for ItemStack {
-    fn write(&self, writer: &mut Writer) {
-        writer.var_i32(self.network_id);
-        if self.network_id == 0 {
+impl<'a> Encode for ItemStack<'a> {
+    fn encode(&self, w: &mut Writer) {
+        self.network_id.encode(w);
+        if *self.network_id == 0 {
             // The item was air, so there's no more data to follow. Return immediately.
             return;
         }
 
-        writer.u16(self.count);
-        writer.var_u32(self.metadata_value);
-        writer.var_i32(self.block_runtime_id);
+        self.count.encode(w);
+        self.metadata_value.encode(w);
+        self.block_runtime_id.encode(w);
 
         let mut extra_data = Writer::default();
-        if let NBTTag::Compound(m) = &self.nbt_data {
+
+        if let Tag::Compound(m) = &self.nbt_data {
             if !m.is_empty() {
-                extra_data.i16(-1);
-                extra_data.u8(1);
-                extra_data.nbt(&self.nbt_data, LittleEndian);
+                -1_i16.encode(&mut extra_data);
+                1_u8.encode(&mut extra_data);
+                self.nbt_data.encode(&mut extra_data);
             } else {
-                extra_data.i16(0);
+                0_i16.encode(&mut extra_data);
             }
         } else {
             panic!("nbt data is not a compound tag");
         }
 
-        extra_data.u32(self.can_be_placed_on.len() as u32);
-        self.can_be_placed_on
-            .iter()
-            .for_each(|b| extra_data.string_utf(b.as_str()));
+        self.can_be_placed_on.encode(&mut extra_data);
+        self.can_break.encode(&mut extra_data);
 
-        extra_data.u32(self.can_break.len() as u32);
-        self.can_break
-            .iter()
-            .for_each(|b| extra_data.string_utf(b.as_str()));
-
-        if self.network_id == writer.shield_id() {
-            extra_data.i64(0);
+        // TODO: Shield Runtime ID
+        if *self.network_id == 1 {
+            0_i64.encode(&mut extra_data);
         }
 
-        writer.byte_slice(Into::<BytesMut>::into(extra_data).as_ref());
+        extra_data.encode(w);
     }
 }
 
-impl Readable<ItemStack> for ItemStack {
-    fn read(reader: &mut Reader) -> Self {
-        let mut stack = Self {
-            network_id: reader.var_i32(),
-            ..Default::default()
-        };
-        if stack.network_id == 0 {
+impl<'a> Decode<'a> for ItemStack<'a> {
+    fn decode(r: &mut Reader<'a>) -> Option<Self> {
+        let network_id = VarI32::decode(r)?;
+        if *network_id == 0 {
             // The item was air, so there's no more data to follow. Return immediately.
-            return Self::default();
+            return Some(Self::default());
         }
 
-        stack.count = reader.u16();
-        stack.metadata_value = reader.var_u32();
-        stack.block_runtime_id = reader.var_i32();
+        let count = u16::decode(r)?;
+        let metadata_value = VarU32::decode(r)?;
+        let block_runtime_id = VarI32::decode(r)?;
 
-        let mut extra_data = Reader::from_buf(reader.byte_slice(), reader.shield_id());
+        let mut extra_data = BytesMut::decode(r)?.freeze();
+        let extra_reader = &mut &extra_data[..];
 
-        let length = extra_data.i16();
+        let mut nbt_data = NBT::<LittleEndian>::default();
+
+        let length = i16::decode(extra_reader)?;
         if length == -1 {
-            let version = extra_data.u8();
-            match version {
-                1 => stack.nbt_data = extra_data.nbt(LittleEndian),
-                _ => panic!("unknown item user data version {}", version),
+            let version = u8::decode(extra_reader)?;
+
+            if version == 1 {
+                nbt_data = NBT::<LittleEndian>::decode(r)?;
+            } else {
+                panic!("unknown item user data version {}", version);
             }
         } else if length > 0 {
-            stack.nbt_data = extra_data.nbt(LittleEndian);
+            nbt_data = NBT::<LittleEndian>::decode(r)?;
         }
 
-        stack.can_be_placed_on = (0..extra_data.u32())
-            .map(|_| extra_data.string_utf())
-            .collect();
-        stack.can_break = (0..extra_data.u32())
-            .map(|_| extra_data.string_utf())
-            .collect();
+        let can_be_placed_on = SliceU32::decode(r)?;
+        let can_break = SliceU32::decode(r)?;
+        let has_network_id = *network_id == 1; // TODO: Shield Network Id
 
-        if stack.network_id == reader.shield_id() {
-            extra_data.i64();
-        }
-
-        stack
+        Some(Self {
+            network_id,
+            count,
+            metadata_value,
+            block_runtime_id,
+            nbt_data,
+            can_be_placed_on,
+            can_break,
+            has_network_id
+        })
     }
 }

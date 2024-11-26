@@ -1,4 +1,4 @@
-use binary::{Decode, Encode, Reader, RefString, VarI32, VarI64, VarU32, Writer, I32, I64, LE, U16};
+use binary::{Decode, Encode, Reader, RefString, VarI32, VarI64, VarU32, Writer};
 
 /// Encoding is the trait implemented for the various types of NBT Encoding supported 
 /// by the NBT Library
@@ -15,12 +15,12 @@ pub trait Encoding {
 
 /// NetworkLittleEndian encoding is used for encoding NBT objects over the network and the wire. It encodes
 /// the integers in variable length encoding format which optimizes bandwidth.
-#[derive(Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy)]
 pub struct NetworkLittleEndian;
 
 /// LittleEndian encoding is used for encoding NBT objects for saving NBT files locally such as player world saves,
 /// player data, etc.
-#[derive(Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy)]
 pub struct LittleEndian;
 
 impl Encoding for NetworkLittleEndian {
@@ -51,26 +51,26 @@ impl Encoding for NetworkLittleEndian {
 
 impl Encoding for LittleEndian {
     fn read_int(r: &mut Reader) -> Option<i32> {
-        Some(I32::<LE>::decode(r)?.get())
+        Some(i32::decode(r)?)
     }
 
     fn write_int(w: &mut Writer, val: i32) {
-        I32::<LE>::new(val).encode(w);
+        val.encode(w);
     }
 
     fn read_long(r: &mut Reader) -> Option<i64> {
-        Some(I64::<LE>::decode(r)?.get())
+        Some(i64::decode(r)?)
     }
 
     fn write_long(w: &mut Writer, val: i64) {
-        I64::<LE>::new(val).encode(w);
+        val.encode(w);
     }
 
     fn read_str<'a>(r: &mut Reader<'a>) -> Option<&'a str> {
-        Some(RefString::<'a, U16<LE>>::decode(r)?.get())
+        Some(RefString::<'a, u16>::decode(r)?.get())
     }
 
     fn write_str(w: &mut Writer, val: &str) {
-        RefString::<U16<LE>>::new(val).encode(w);
+        RefString::<u16>::new(val).encode(w);
     }
 }

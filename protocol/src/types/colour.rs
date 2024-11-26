@@ -1,5 +1,5 @@
 use bytes::BufMut;
-use binary::{Decode, Encode, Reader, VarU32, Writer, LE, U32};
+use binary::{Decode, Encode, Reader, VarU32, Writer};
 use derive::{Decode, Encode};
 
 #[derive(Debug, Clone, Encode, Decode)]
@@ -30,7 +30,7 @@ impl Encode for RGBA {
 
 impl Decode<'_> for RGBA {
     fn decode(r: &mut Reader) -> Option<Self> {
-        let value = U32::<LE>::decode(r)?.get();
+        let value = u32::decode(r)?;
         Some(Self {
             r: value as u8,
             g: (value >> 8) as u8,

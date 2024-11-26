@@ -1,11 +1,9 @@
-use crate::proto::ints::VarI32;
-use num_derive::{FromPrimitive, ToPrimitive};
-use zuri_net_derive::proto;
+use derive::{Decode, Encode};
 
-#[proto(VarI32)]
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Default, Debug, Clone, Encode, Decode)]
+#[encoding(type = VarI32)]
 pub enum LevelEventType {
-    #[fallback]
+    #[default]
     Undefined,
     SoundClick = 1000,
     SoundClickFail = 1001,

@@ -1,16 +1,16 @@
-use crate::proto::ints::VarI32;
 use glam::IVec3;
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::{FromPrimitive, ToPrimitive};
-use zuri_net_derive::proto;
+use binary::VarI32;
+use derive::{Decode, Encode};
+use crate::types::BlockPos;
 
-use crate::proto::io::{Reader, Writer};
-
-#[proto(VarI32)]
-#[derive(Debug, Clone, Copy, FromPrimitive, ToPrimitive)]
+#[repr(i32)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = VarI32)]
 pub enum PlayerActionType {
-    StartBreak,
-    AbortBreak,
+    StartBreak(BlockDetail),
+    AbortBreak(BlockDetail),
     StopBreak,
     GetUpdatedBlock,
     DropItem,
@@ -27,7 +27,7 @@ pub enum PlayerActionType {
     StartGlide,
     StopGlide,
     BuildDenied,
-    CrackBreak,
+    CrackBreak(BlockDetail),
     ChangeSkin,
     SetEnchantmentSeed,
     StartSwimming,
@@ -35,8 +35,8 @@ pub enum PlayerActionType {
     StartSpinAttack,
     StopSpinAttack,
     StartBuildingBlock,
-    PredictDestroyBlock,
-    ContinueDestroyBlock,
+    PredictDestroyBlock(BlockDetail),
+    ContinueDestroyBlock(BlockDetail),
     StartItemUseOn,
     StopItemUseOn,
     HandledTeleport,
@@ -46,6 +46,12 @@ pub enum PlayerActionType {
     StartFlying,
     StopFlying,
     ClientAckServerData,
+}
+
+#[derive(Debug, Clone, Encode, Decode)]
+pub struct BlockDetail {
+    pub pos: BlockPos,
+    pub face: VarI32
 }
 
 #[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
@@ -88,55 +94,16 @@ pub enum TeleportCause {
     Behaviour,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct PlayerMovementSettings {
     pub movement_type: VarI32,
     pub rewind_history_size: VarI32,
     pub server_authoritative_block_breaking: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct PlayerBlockAction {
     pub action: PlayerActionType,
     pub block_pos: IVec3,
     pub face: i32,
-}
-
-impl PlayerBlockAction {
-    pub fn write(&self, writer: &mut Writer) {
-        writer.var_i32(self.action.to_i32().unwrap());
-        match self.action {
-            PlayerActionType::StartBreak
-            | PlayerActionType::AbortBreak
-            | PlayerActionType::CrackBreak
-            | PlayerActionType::PredictDestroyBlock
-            | PlayerActionType::ContinueDestroyBlock => {
-                writer.block_pos(self.block_pos);
-                writer.var_i32(self.face);
-            }
-            _ => {}
-        }
-    }
-
-    pub fn read(reader: &mut Reader) -> Self {
-        let mut action = Self {
-            action: PlayerActionType::from_i32(reader.var_i32()).unwrap(),
-            block_pos: IVec3::default(),
-            face: 0,
-        };
-        match action.action {
-            PlayerActionType::StartBreak
-            | PlayerActionType::AbortBreak
-            | PlayerActionType::CrackBreak
-            | PlayerActionType::PredictDestroyBlock
-            | PlayerActionType::ContinueDestroyBlock => {
-                action.block_pos = reader.block_pos();
-                action.face = reader.var_i32();
-            }
-            _ => {}
-        }
-
-        action
-    }
 }

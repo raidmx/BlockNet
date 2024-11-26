@@ -5,7 +5,7 @@ pub use encoding::*;
 pub use tag::*;
 
 use bytes::BufMut;
-use binary::{generate, Decode, Encode, Reader, Writer, F32, F64, I16, I8, LE, U8};
+use binary::{generate, Decode, Encode, Reader, Writer};
 
 generate!(NBT, <E: Encoding>, Tag<'a>, 'a);
 generate!(Compound, <E: Encoding>, CompoundTag<'a>, 'a);
@@ -101,26 +101,26 @@ impl<'a, E: Encoding> Decode<'a> for List<'a, E> {
 /// Encodes a [`TagId`] to the Writer.
 #[inline]
 pub fn encode_tag_id(id: TagId, w: &mut Writer) {
-    U8::new(id as u8).encode(w);
+    (id as u8).encode(w);
 }
 
 /// Decodes a [`TagId`] from the Reader and returns it.
 #[inline]
 pub fn decode_tag_id(r: &mut Reader) -> Option<TagId> {
-    let byte = U8::decode(r)?.get();
-    Some(TagId::from_byte(byte)?)
+    Some(TagId::from_byte(u8::decode(r)?)?)
 }
 
 /// Encodes a [`Tag`] of the specified [`TagId`] to the [`Writer`].
 /// Uses the specified [`Encoding`] to encode the tag.
 pub fn encode<E: Encoding>(tag: &Tag, w: &mut Writer) {
     match tag {
-        Tag::Byte(v) => I8::new(*v).encode(w),
-        Tag::Short(v) => I16::<LE>::new(*v).encode(w),
+        Tag::End => {},
+        Tag::Byte(v) => v.encode(w),
+        Tag::Short(v) => v.encode(w),
         Tag::Int(v) => E::write_int(w, *v),
         Tag::Long(v) => E::write_long(w, *v),
-        Tag::Float(v) => F32::<LE>::new(*v).encode(w),
-        Tag::Double(v) => F64::<LE>::new(*v).encode(w),
+        Tag::Float(v) => v.encode(w),
+        Tag::Double(v) => v.encode(w),
         Tag::ByteArray(v) => {
             E::write_int(w, v.len() as i32);
 
@@ -169,12 +169,12 @@ pub fn encode<E: Encoding>(tag: &Tag, w: &mut Writer) {
 pub fn decode<'a, E: Encoding>(id: TagId, r: &mut Reader<'a>) -> Option<Tag<'a>> {
     match id {
         TagId::End => None,
-        TagId::Byte => Some(Tag::Byte(I8::decode(r)?.get())),
-        TagId::Short => Some(Tag::Short(I16::<LE>::decode(r)?.get())),
+        TagId::Byte => Some(Tag::Byte(i8::decode(r)?)),
+        TagId::Short => Some(Tag::Short(i16::decode(r)?)),
         TagId::Int => Some(Tag::Int(E::read_int(r)?)),
         TagId::Long => Some(Tag::Long(E::read_long(r)?)),
-        TagId::Float => Some(Tag::Float(F32::<LE>::decode(r)?.get())),
-        TagId::Double => Some(Tag::Double(F64::<LE>::decode(r)?.get())),
+        TagId::Float => Some(Tag::Float(f32::decode(r)?)),
+        TagId::Double => Some(Tag::Double(f64::decode(r)?)),
         TagId::ByteArray => {
             let len = E::read_int(r)? as usize;
             let slice = &r[..len];

@@ -1,11 +1,10 @@
-use crate::proto::ints::{VarI32, VarI64};
 use glam::Vec3;
-use zuri_net_derive::proto;
+use binary::VarI64;
+use derive::{Decode, Encode};
+use crate::types::UBlockPos;
 
-use crate::proto::io::UBlockPos;
-
-#[proto(VarI32)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = VarU32)]
 pub enum StructureBlockType {
     Data,
     Save,
@@ -23,8 +22,8 @@ pub enum StructureMirrorAxis {
     Both,
 }
 
-#[proto(VarI32)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = VarI32)]
 pub enum StructureRedstoneSaveMode {
     Memory,
     Disk,
@@ -38,8 +37,8 @@ pub enum StructureRotation {
     Rotate270,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum StructureTemplateDataRequestType {
     None,
     ExportFromSave,
@@ -55,16 +54,15 @@ pub enum StructureTemplateDataResponseType {
     Import,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum AnimationMode {
     None,
     Layers,
     Blocks,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct StructureSettings {
     pub palette_name: String,
     pub ignore_entities: bool,

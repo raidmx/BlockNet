@@ -6,7 +6,7 @@ use super::Tag;
 
 /// CompoundTag represents a Tag compound which contains a mapping of Key-Value based values.
 /// Key is always of type String and Value is of type Tag.
-#[derive(PartialEq, Clone)]
+#[derive(Default, PartialEq, Clone)]
 pub struct CompoundTag<'a> {
     map: HashMap<String, Tag<'a>>,
 }

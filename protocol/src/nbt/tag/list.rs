@@ -6,7 +6,7 @@ use crate::nbt::{Tag, TagId};
 
 /// List represents a collection of Tag objects. It is a homogenous collection of Tag objects, in other
 /// words, objects of same type only.
-#[derive(PartialEq, Clone)]
+#[derive(Default, PartialEq, Clone)]
 pub struct ListTag<'a> {
     id: TagId,
     list: Vec<Tag<'a>>,

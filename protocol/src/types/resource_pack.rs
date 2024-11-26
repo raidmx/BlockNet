@@ -1,8 +1,8 @@
 use num_derive::{FromPrimitive, ToPrimitive};
-use zuri_net_derive::proto;
+use derive::{Decode, Encode};
 
-#[proto(u8)]
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum ResourcePackResponse {
     None,
     Refused,
@@ -11,8 +11,8 @@ pub enum ResourcePackResponse {
     Completed,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum ResourcePackType {
     Addon,
     Cached,

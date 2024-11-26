@@ -1,77 +1,70 @@
-use glam::{IVec3, Vec3};
 use num_derive::{FromPrimitive, ToPrimitive};
 use std::collections::HashMap;
+use binary::{generate, Decode, Encode, Reader, VarI32, VarI64, VarU32, Writer};
+use derive::{Decode, Encode};
+use crate::nbt::{NetworkLittleEndian, NBT};
+use glam::{IVec3, Vec3};
 
-use crate::proto::ints::{VarI32, VarU32};
-use zuri_nbt::NBTTag;
-use zuri_net_derive::proto;
+generate!(EntityMetadata, <>, HashMap<u32, EntityDataEntry<'a>>, 'a);
 
-use crate::proto::io::{Readable, Reader, Writable, Writer};
+impl<'a> Encode for EntityMetadata<'a> {
+    fn encode(&self, w: &mut Writer) {
+        VarU32::new(self.len() as u32).encode(w);
 
-#[derive(Clone, Default, Debug)]
-pub struct EntityMetadata(pub HashMap<u32, EntityDataEntry>);
+        let mut keys: Vec<u32> = self.keys().collect();
+        keys.sort();
 
-impl Writable for EntityMetadata {
-    #[inline]
-    fn write(&self, writer: &mut Writer) {
-        writer.entity_metadata(&self.0)
+        for key in keys.iter() {
+            VarU32::new(*key).encode(w);
+            self.val.get(key).unwrap().encode(w);
+        }
     }
 }
 
-impl Readable<EntityMetadata> for EntityMetadata {
-    #[inline]
-    fn read(reader: &mut Reader) -> EntityMetadata {
-        Self(reader.entity_metadata())
+impl<'a> Decode<'a> for EntityMetadata<'a> {
+    fn decode(r: &mut Reader<'a>) -> Option<Self> {
+        let len = VarU32::decode(r)?.get() as usize;
+        let data = (0..len).map(|_| {
+            let key = VarU32::decode(r)?.get();
+            let value = EntityDataEntry::decode(r)?;
+
+            Some((key, value))
+        }).collect::<Option<_>>()?;
+
+        Some(Self::new(data))
     }
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct EntityProperties {
-    #[len_type(VarU32)]
     pub integer_properties: Vec<IntegerEntityProperty>,
-    #[len_type(VarU32)]
     pub float_properties: Vec<FloatEntityProperty>,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct IntegerEntityProperty {
     pub index: VarU32,
     pub value: VarI32,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct FloatEntityProperty {
     pub index: VarU32,
     pub value: f32,
 }
 
-#[derive(Debug, Clone)]
-pub enum EntityDataEntry {
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = VarU32)]
+pub enum EntityDataEntry<'a> {
     U8(u8),
     I16(i16),
-    I32(i32),
+    I32(VarI32),
     F32(f32),
     String(String),
-    NBT(NBTTag),
+    NBT(NBT<'a, NetworkLittleEndian>),
     BlockPos(IVec3),
-    I64(i64),
+    I64(VarI64),
     Vec3(Vec3),
-}
-
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
-pub enum EntityDataType {
-    U8,
-    I16,
-    I32,
-    F32,
-    String,
-    NBT,
-    BlockPos,
-    I64,
-    Vec3,
 }
 
 #[derive(Debug, Copy, Clone, FromPrimitive, ToPrimitive)]

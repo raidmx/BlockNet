@@ -9,3 +9,5 @@ derive = { path = "../derive" }
 bytes = "1.8.0"
 num-derive = "0.4.2"
 num-traits = "0.2.19"
+uuid = { version = "1.11.0", features = ["v4"] }
+glam = "0.29.2"

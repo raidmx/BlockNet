@@ -1,8 +1,8 @@
 use bytes::Bytes;
-use zuri_net_derive::proto;
+use derive::{Decode, Encode};
+use crate::types::SliceU32;
 
-#[proto]
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, Encode, Decode)]
 pub struct Skin {
     pub skin_id: String,
     pub play_fab_id: String,
@@ -10,8 +10,7 @@ pub struct Skin {
     pub skin_image_width: u32,
     pub skin_image_height: u32,
     pub skin_data: Bytes,
-    #[len_type(u32)]
-    pub animations: Vec<SkinAnimation>,
+    pub animations: SliceU32<SkinAnimation>,
     pub cape_image_width: u32,
     pub cape_image_height: u32,
     pub cape_data: Bytes,
@@ -22,24 +21,20 @@ pub struct Skin {
     pub full_id: String,
     pub arm_size: String,
     pub skin_colour: String,
-    #[len_type(u32)]
-    pub persona_pieces: Vec<PersonaPiece>,
-    #[len_type(u32)]
-    pub piece_tint_colours: Vec<PersonaPieceTintColour>,
+    pub persona_pieces: SliceU32<PersonaPiece>,
+    pub piece_tint_colours: SliceU32<PersonaPieceTintColour>,
     pub premium_skin: bool,
     pub persona_skin: bool,
     pub persona_cape_on_classic_skin: bool,
     pub primary_user: bool,
-    #[skip]
-    pub trusted: bool,
+    pub trusted: bool, // TODO: SKIP
     /// Specifies if the skin should override the player's skin that is equipped client-side. When
     /// false, the client will reject the skin and continue to use the skin that the player has
     /// equipped.
     pub override_appearance: bool,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct SkinAnimation {
     pub image_width: u32,
     pub image_height: u32,
@@ -49,8 +44,7 @@ pub struct SkinAnimation {
     pub expression_type: u32,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct PersonaPiece {
     pub piece_id: String,
     pub piece_type: String,
@@ -59,10 +53,8 @@ pub struct PersonaPiece {
     pub product_id: String,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct PersonaPieceTintColour {
     pub piece_type: String,
-    #[len_type(u32)]
-    pub colours: Vec<String>,
+    pub colours: SliceU32<String>,
 }

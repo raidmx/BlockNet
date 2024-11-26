@@ -1,16 +1,12 @@
 use bytes::Bytes;
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::{FromPrimitive, ToPrimitive};
+use binary::{VarI32, VarI64};
+use derive::{Decode, Encode};
+use crate::nbt::{NetworkLittleEndian, NBT};
 
-use zuri_nbt::encoding::NetworkLittleEndian;
-use zuri_nbt::NBTTag;
-use zuri_net_derive::proto;
-
-use crate::proto::ints::{VarI32, VarI64, VarU32, VarU64};
-use crate::proto::io::{Reader, Writer};
-
-#[proto(VarI32)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = VarI32)]
 pub enum SpawnType {
     Player,
     World,
@@ -23,7 +19,8 @@ pub enum SubChunkRequestMode {
     Limited,
 }
 
-#[derive(Debug, Clone, PartialEq, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, PartialEq, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum SubChunkResult {
     Success,
     ChunkNotFound,
@@ -33,8 +30,8 @@ pub enum SubChunkResult {
     SuccessAllAir,
 }
 
-#[proto(VarU32)]
-#[derive(Debug, Copy, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Copy, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = VarU32)]
 pub enum Difficulty {
     Peaceful,
     Easy,
@@ -42,15 +39,16 @@ pub enum Difficulty {
     Hard,
 }
 
-#[proto(VarU32)]
-#[derive(Debug, Copy, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Copy, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = VarU32)]
 pub enum Dimension {
     Overworld,
     Nether,
     End,
 }
 
-#[derive(Debug, Clone, PartialEq, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, PartialEq, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = VarU32)]
 pub enum HeightMapType {
     None,
     HasData,
@@ -58,8 +56,8 @@ pub enum HeightMapType {
     TooLow,
 }
 
-#[proto(VarI32)]
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = VarI32)]
 pub enum GameType {
     Survival,
     Creative,
@@ -70,8 +68,8 @@ pub enum GameType {
     Spectator,
 }
 
-#[proto(VarI32)]
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = VarI32)]
 pub enum Generator {
     Legacy,
     Overworld,
@@ -81,8 +79,8 @@ pub enum Generator {
     Void,
 }
 
-#[proto(VarU32)]
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = VarU32)]
 pub enum PermissionLevel {
     Visitor,
     Member,
@@ -90,58 +88,41 @@ pub enum PermissionLevel {
     Custom,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum EntityLinkType {
     Remove,
     Rider,
     Passenger,
 }
 
-#[proto(VarU64)]
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[encoding(type = VarU64)]
 pub enum UpdateBlockTransition {
     BlockToEntity,
     EntityToBlock,
 }
 
-#[derive(Debug, Clone)]
-pub struct BlockEntry {
-    pub name: String,
-    pub properties: NBTTag,
+#[derive(Debug, Clone, Encode, Decode)]
+pub struct BlockEntry<'a> {
+    pub name: &'a str,
+    pub properties: NBT<'a, NetworkLittleEndian>,
 }
 
-impl BlockEntry {
-    pub fn write(&self, writer: &mut Writer) {
-        writer.string(self.name.as_str());
-        writer.nbt(&self.properties, NetworkLittleEndian);
-    }
-
-    pub fn read(reader: &mut Reader) -> Self {
-        Self {
-            name: reader.string(),
-            properties: reader.nbt(NetworkLittleEndian),
-        }
-    }
-}
-
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct GenerationFeature {
     name: String,
     json: Bytes,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct DimensionDefinition {
     name: String,
     range: [VarI32; 2],
     generator: VarI32,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct EntityLink {
     pub ridden_entity_unique_id: VarI64,
     pub rider_entity_unique_id: VarI64,
@@ -204,38 +185,20 @@ impl SubChunkEntry {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct SubChunkOffset {
     pub x: i8,
     pub y: i8,
     pub z: i8,
 }
 
-impl SubChunkOffset {
-    pub fn write(&self, writer: &mut Writer) {
-        writer.i8(self.x);
-        writer.i8(self.y);
-        writer.i8(self.z);
-    }
-
-    pub fn read(reader: &mut Reader) -> Self {
-        Self {
-            x: reader.i8(),
-            y: reader.i8(),
-            z: reader.i8(),
-        }
-    }
-}
-
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct CacheBlob {
     pub hash: u64,
     pub payload: Bytes,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct ExperimentData {
     pub name: String,
     pub enabled: bool,

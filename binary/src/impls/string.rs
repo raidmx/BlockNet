@@ -62,6 +62,9 @@ impl Encode for str {
 impl<'a> Decode<'a> for &'a str {
     fn decode(r: &mut Reader<'a>) -> Option<Self> {
         let len = VarU32::decode(r)?.to_usize();
+        if r.remaining() < len {
+            return None;
+        }
         
         match std::str::from_utf8(&r[..len]) {
             Ok(v) => {
