@@ -109,7 +109,7 @@ impl<'a> Decode<'a> for ItemInstance<'a> {
 
         let block_runtime_id = VarI32::decode(r)?;
 
-        let mut extra_data = BytesMut::decode(r)?.freeze();
+        let extra_data = BytesMut::decode(r)?.freeze();
         let extra_reader = &mut &extra_data[..];
 
         let mut nbt_data = NBT::<LittleEndian>::default();
@@ -211,7 +211,7 @@ impl<'a> Decode<'a> for ItemStack<'a> {
         let metadata_value = VarU32::decode(r)?;
         let block_runtime_id = VarI32::decode(r)?;
 
-        let mut extra_data = BytesMut::decode(r)?.freeze();
+        let extra_data = BytesMut::decode(r)?.freeze();
         let extra_reader = &mut &extra_data[..];
 
         let mut nbt_data = NBT::<LittleEndian>::default();

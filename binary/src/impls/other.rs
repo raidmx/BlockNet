@@ -1,7 +1,7 @@
 use bytes::{Buf, BufMut};
-use glam::{IVec3, Vec2, Vec3};
+use glam::{Vec2, Vec3};
 use uuid::Uuid;
-use crate::{generate, Decode, Encode, Reader, VarI32, Writer};
+use crate::{Decode, Encode, Reader, Writer};
 
 impl Encode for bool {
     #[inline]
