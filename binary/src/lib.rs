@@ -43,8 +43,8 @@ pub trait EnumEncoder: Debug {
 
 /// EnumDecoder is a trait implemented by Enums to serialize and deserialize enum variants.
 /// It uses the Variant trait to specify what type of integer to use for serializing data.
-pub trait EnumDecoder : Debug + Sized {
-    fn read<V: Variant>(r: &mut Reader) -> Option<Self>;
+pub trait EnumDecoder<'a> : Debug + Sized {
+    fn read<V: Variant>(r: &mut Reader<'a>) -> Option<Self>;
 }
 
 /// Numeric trait is implemented for all those integer types that can be converted

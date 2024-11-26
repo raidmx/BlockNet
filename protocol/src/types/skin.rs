@@ -34,7 +34,7 @@ pub struct Skin {
     pub override_appearance: bool,
 }
 
-#[derive(Debug, Clone, Encode, Decode)]
+#[derive(Debug, Clone, Default, Encode, Decode)]
 pub struct SkinAnimation {
     pub image_width: u32,
     pub image_height: u32,
@@ -44,7 +44,7 @@ pub struct SkinAnimation {
     pub expression_type: u32,
 }
 
-#[derive(Debug, Clone, Encode, Decode)]
+#[derive(Debug, Clone, Default, Encode, Decode)]
 pub struct PersonaPiece {
     pub piece_id: String,
     pub piece_type: String,
@@ -53,7 +53,7 @@ pub struct PersonaPiece {
     pub product_id: String,
 }
 
-#[derive(Debug, Clone, Encode, Decode)]
+#[derive(Debug, Clone, Default, Encode, Decode)]
 pub struct PersonaPieceTintColour {
     pub piece_type: String,
     pub colours: SliceU32<String>,

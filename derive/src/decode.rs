@@ -158,10 +158,10 @@ pub(super) fn derive_decode(item: TokenStream) -> Result<TokenStream> {
                     }
                 }
 
-                impl #impl_generics binary::EnumDecoder for #input_name #ty_generics
+                impl #impl_generics binary::EnumDecoder<#lifetime> for #input_name #ty_generics
                 #where_clause
                 {
-                    fn read<V: binary::Variant>(r: &mut binary::Reader) -> Option<Self> {
+                    fn read<V: binary::Variant>(r: &mut &#lifetime [u8]) -> Option<Self> {
                         use binary::*;
 
                         let disc = V::decode(r)?.to_isize();

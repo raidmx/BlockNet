@@ -66,9 +66,9 @@ impl<'a> Encode for ItemInstance<'a> {
 
         let mut extra_data = Writer::default();
 
-        if let Tag::Compound(m) = &self.stack.nbt_data {
+        if let Tag::Compound(m) = &self.stack.nbt_data.as_ref() {
             if !m.is_empty() {
-                -1_i16.encode(&mut extra_data);
+                (-1i16).encode(&mut extra_data);
                 1_u8.encode(&mut extra_data);
                 self.stack.nbt_data.encode(&mut extra_data);
             } else {
@@ -141,7 +141,7 @@ impl<'a> Decode<'a> for ItemInstance<'a> {
             can_break,
             has_network_id
         };
-        
+
         Some(Self {
             stack_network_id,
             stack
@@ -175,9 +175,9 @@ impl<'a> Encode for ItemStack<'a> {
 
         let mut extra_data = Writer::default();
 
-        if let Tag::Compound(m) = &self.nbt_data {
+        if let Tag::Compound(m) = &self.nbt_data.as_ref() {
             if !m.is_empty() {
-                -1_i16.encode(&mut extra_data);
+                (-1i16).encode(&mut extra_data);
                 1_u8.encode(&mut extra_data);
                 self.nbt_data.encode(&mut extra_data);
             } else {

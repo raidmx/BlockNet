@@ -1,5 +1,4 @@
 use num_derive::{FromPrimitive, ToPrimitive};
-use num_traits::{FromPrimitive, ToPrimitive};
 use binary::{Decode, Encode, Reader, VarI64, Writer};
 use derive::{Decode, Encode};
 
@@ -52,17 +51,17 @@ impl<'a> ScoreboardEntry<'a> {
             self.identity_type.encode(w);
         }
     }
-    
-    pub fn read(r: &mut Reader, action: ScoreboardAction) -> Option<Self> {
+
+    pub fn read(r: &mut &'a [u8], action: ScoreboardAction) -> Option<Self> {
         let entry_id = VarI64::decode(r)?;
-        let objective_name = <&str>::decode(r)?;
+        let objective_name = <&'a str>::decode(r)?;
         let score = i32::decode(r)?;
         let mut identity_type = ScoreboardIdentity::None;
-        
+
         if let ScoreboardAction::Modify = action {
-            identity_type = ScoreboardIdentity::decode(r)?;   
+            identity_type = ScoreboardIdentity::decode(r)?;
         }
-        
+
         Some(Self {
             entry_id,
             objective_name,
@@ -88,16 +87,16 @@ pub struct ScoreboardIdentityEntry {
 impl ScoreboardIdentityEntry {
     pub fn write(&self, w: &mut Writer, action: ScoreboardIdentityAction) {
         self.entry_id.encode(w);
-        
+
         if let ScoreboardIdentityAction::Register = action {
             self.entity_unique_id.encode(w);
         }
     }
-    
+
     pub fn read(r: &mut Reader, action: ScoreboardIdentityAction) -> Option<Self> {
         let entry_id = VarI64::decode(r)?;
         let mut entity_unique_id = VarI64::default();
-        
+
         if let ScoreboardIdentityAction::Register = action {
             entity_unique_id = VarI64::decode(r)?;
         }

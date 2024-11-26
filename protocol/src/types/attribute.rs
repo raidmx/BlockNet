@@ -1,20 +1,21 @@
 use num_derive::{FromPrimitive, ToPrimitive};
-use num_traits::{FromPrimitive, ToPrimitive};
 use binary::{Decode, Encode, Reader, Writer};
 use derive::{Decode, Encode};
 use crate::types::SliceU32;
 
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[derive(Debug, Clone, Default, FromPrimitive, ToPrimitive, Encode, Decode)]
 #[encoding(type = i32)]
 pub enum AttributeModifierOperand {
+    #[default]
     Min,
     Max,
     Current,
 }
 
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[derive(Debug, Clone, Default, FromPrimitive, ToPrimitive, Encode, Decode)]
 #[encoding(type = i32)]
 pub enum AttributeModifierOperation {
+    #[default]
     Addition,
     MultiplyBase,
     MultiplyTotal,
@@ -29,7 +30,7 @@ pub struct AttributeValue<'a> {
     pub value: f32,
 }
 
-#[derive(Debug, Clone, Encode, Decode)]
+#[derive(Debug, Clone, Default, Encode, Decode)]
 pub struct AttributeModifier<'a> {
     pub id: &'a str,
     pub name: &'a str,
@@ -64,7 +65,7 @@ impl<'a> Decode<'a> for Attribute<'a> {
         let value = f32::decode(r)?;
         let default = f32::decode(r)?;
         let name = <&str>::decode(r)?;
-        let modifiers = SliceU32::decode(r)?;
+        let modifiers = SliceU32::<AttributeModifier<'a>>::decode(r)?;
 
         let attribute_value = AttributeValue {
             name,

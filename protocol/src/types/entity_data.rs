@@ -3,7 +3,8 @@ use std::collections::HashMap;
 use binary::{generate, Decode, Encode, Reader, VarI32, VarI64, VarU32, Writer};
 use derive::{Decode, Encode};
 use crate::nbt::{NetworkLittleEndian, NBT};
-use glam::{IVec3, Vec3};
+use glam::Vec3;
+use crate::types::BlockPos;
 
 generate!(EntityMetadata, <>, HashMap<u32, EntityDataEntry<'a>>, 'a);
 
@@ -11,11 +12,11 @@ impl<'a> Encode for EntityMetadata<'a> {
     fn encode(&self, w: &mut Writer) {
         VarU32::new(self.len() as u32).encode(w);
 
-        let mut keys: Vec<u32> = self.keys().collect();
+        let mut keys: Vec<&u32> = self.keys().collect();
         keys.sort();
 
         for key in keys.iter() {
-            VarU32::new(*key).encode(w);
+            VarU32::new(**key).encode(w);
             self.val.get(key).unwrap().encode(w);
         }
     }
@@ -62,7 +63,7 @@ pub enum EntityDataEntry<'a> {
     F32(f32),
     String(String),
     NBT(NBT<'a, NetworkLittleEndian>),
-    BlockPos(IVec3),
+    BlockPos(BlockPos),
     I64(VarI64),
     Vec3(Vec3),
 }

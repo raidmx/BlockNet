@@ -1,5 +1,4 @@
 use num_derive::{FromPrimitive, ToPrimitive};
-use num_traits::{FromPrimitive, ToPrimitive};
 use derive::{Decode, Encode};
 use crate::types::{UBlockPos, VarRGBA};
 

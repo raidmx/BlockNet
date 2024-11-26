@@ -1,5 +1,5 @@
 use std::mem::MaybeUninit;
-use bytes::{Buf, BufMut, BytesMut};
+use bytes::{Buf, BufMut, Bytes, BytesMut};
 use crate::{generate, Decode, Encode, Numeric, Prefix, Reader, VarU32, Writer};
 
 generate!(Array, <P: Prefix, T: Encode>, Vec<T>);
@@ -15,8 +15,8 @@ impl<P: Prefix, T: Encode> Encode for Array<P, T> {
     }
 }
 
-impl<P: Prefix, T: Encode + for<'a> Decode<'a>> Decode<'_> for Array<P, T> {
-    fn decode(r: &mut Reader) -> Option<Self> {
+impl<'a, P: Prefix, T: Encode + Decode<'a>> Decode<'a> for Array<P, T> {
+    fn decode(r: &mut Reader<'a>) -> Option<Self> {
         let len = P::decode(r)?.to_usize();
 
         let data: Vec<T> = (0..len).map(|_| T::decode(r)).collect::<Option<_>>()?;
@@ -107,10 +107,23 @@ impl Encode for BytesMut {
 impl Decode<'_> for BytesMut {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
         let len = VarU32::decode(r)?.to_usize();
-        
+
         let mut bytes = BytesMut::zeroed(len);
         r.copy_to_slice(&mut bytes);
-        
+
         Some(bytes)
+    }
+}
+
+impl Encode for Bytes {
+    fn encode(&self, w: &mut Writer) {
+        VarU32::from_usize(self.len()).encode(w);
+        w.put_slice(self.as_ref());
+    }
+}
+
+impl Decode<'_> for Bytes {
+    fn decode(r: &mut Reader<'_>) -> Option<Self> {
+        Some(BytesMut::decode(r)?.into())
     }
 }

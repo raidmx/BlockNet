@@ -1,6 +1,4 @@
-use glam::IVec3;
 use num_derive::{FromPrimitive, ToPrimitive};
-use num_traits::{FromPrimitive, ToPrimitive};
 use binary::VarI32;
 use derive::{Decode, Encode};
 use crate::types::BlockPos;
@@ -104,6 +102,6 @@ pub struct PlayerMovementSettings {
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct PlayerBlockAction {
     pub action: PlayerActionType,
-    pub block_pos: IVec3,
+    pub block_pos: BlockPos,
     pub face: i32,
 }

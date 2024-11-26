@@ -72,6 +72,7 @@ macro_rules! generate_tags {
         impl<'a> Tag<'a> {
             pub fn id(&self) -> TagId {
                 match self {
+                    Tag::End => TagId::End,
                     $(Self::$variant(_) => TagId::$variant,)*
                 }
             }
@@ -80,6 +81,7 @@ macro_rules! generate_tags {
         impl<'a> std::fmt::Debug for Tag<'a> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match self {
+                    Tag::End => write!(f, "End"),
                     $(Tag::$variant(value) => write!(f, "{:?}", value),)*
                 }
             }
