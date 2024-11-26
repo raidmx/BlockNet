@@ -1,7 +1,6 @@
 use bytes::Bytes;
 use num_derive::{FromPrimitive, ToPrimitive};
-use num_traits::{FromPrimitive, ToPrimitive};
-use binary::{VarI32, VarI64};
+use binary::{Decode, Encode, Reader, VarI32, VarI64, Writer};
 use derive::{Decode, Encode};
 use crate::nbt::{NetworkLittleEndian, NBT};
 
@@ -48,7 +47,7 @@ pub enum Dimension {
 }
 
 #[derive(Debug, Clone, PartialEq, FromPrimitive, ToPrimitive, Encode, Decode)]
-#[encoding(type = VarU32)]
+#[encoding(type = u8)]
 pub enum HeightMapType {
     None,
     HasData,
@@ -142,46 +141,50 @@ pub struct SubChunkEntry {
 }
 
 impl SubChunkEntry {
-    pub fn write(&self, writer: &mut Writer, cache_enabled: bool) {
-        self.offset.write(writer);
-        writer.u8(self.result.to_u8().unwrap());
+    pub fn write(&self, w: &mut Writer, cache_enabled: bool) {
+        self.offset.encode(w);
+        self.result.encode(w);
+
         if self.result != SubChunkResult::SuccessAllAir || cache_enabled {
-            writer.byte_slice(&self.raw_payload);
+            self.raw_payload.encode(w);
         }
-        writer.u8(self.height_map_type.to_u8().unwrap());
+
+        self.height_map_type.encode(w);
+
         if self.height_map_type == HeightMapType::HasData {
-            for data in self.height_map_data {
-                writer.i8(data);
-            }
+            self.height_map_data.encode(w);
         }
+
         if !cache_enabled {
-            writer.u64(self.blob_hash);
+            self.blob_hash.encode(w);
         }
     }
 
-    pub fn read(reader: &mut Reader, cache_enabled: bool) -> Self {
+    pub fn read(r: &mut Reader, cache_enabled: bool) -> Option<Self> {
         let mut entry = Self {
-            offset: SubChunkOffset::read(reader),
-            result: SubChunkResult::from_u8(reader.u8()).unwrap(),
+            offset: SubChunkOffset::decode(r)?,
+            result: SubChunkResult::decode(r)?,
             raw_payload: Bytes::default(),
             height_map_type: HeightMapType::None,
             height_map_data: [0; 256],
             blob_hash: 0,
         };
+
         if entry.result != SubChunkResult::SuccessAllAir || cache_enabled {
-            entry.raw_payload = reader.byte_slice();
-        }
-        entry.height_map_type = HeightMapType::from_u8(reader.u8()).unwrap();
-        if entry.height_map_type == HeightMapType::HasData {
-            for i in 0..256 {
-                entry.height_map_data[i] = reader.i8();
-            }
-        }
-        if !cache_enabled {
-            entry.blob_hash = reader.u64();
+            entry.raw_payload = Bytes::decode(r)?;
         }
 
-        entry
+        entry.height_map_type = HeightMapType::decode(r)?;
+
+        if entry.height_map_type == HeightMapType::HasData {
+            entry.height_map_data = <[i8; 256]>::decode(r)?;
+        }
+
+        if !cache_enabled {
+            entry.blob_hash = u64::decode(r)?
+        }
+
+        Some(entry)
     }
 }
 
