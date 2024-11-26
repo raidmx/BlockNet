@@ -1,13 +1,13 @@
 use std::mem::MaybeUninit;
-use bytes::{Buf, BufMut, Bytes, BytesMut};
-use crate::{generate, Decode, Encode, Prefix, Reader, VarU32, Writer};
+use bytes::{Buf, BufMut};
+use crate::{generate, Decode, Encode, Numeric, Prefix, Reader, VarU32, Writer};
 
 generate!(Array, <P: Prefix, T: Encode>, Vec<T>);
 generate!(RefBytes, <P: Prefix>, &'a [u8], 'a);
 
 impl<P: Prefix, T: Encode> Encode for Array<P, T> {
     fn encode(&self, w: &mut Writer) {
-        P::from(self.len()).encode(w);
+        P::from_usize(self.len()).encode(w);
 
         for item in &self.val {
             item.encode(w);
@@ -17,7 +17,7 @@ impl<P: Prefix, T: Encode> Encode for Array<P, T> {
 
 impl<P: Prefix, T: Encode + for<'a> Decode<'a>> Decode<'_> for Array<P, T> {
     fn decode(r: &mut Reader) -> Option<Self> {
-        let len = P::decode(r)?.into();
+        let len = P::decode(r)?.to_usize();
         if r.remaining() < len {
             return None;
         }
@@ -59,7 +59,7 @@ impl<'a, T: Decode<'a>, const N: usize> Decode<'a> for [T; N] {
 
 impl<T: Encode> Encode for [T] {
     fn encode(&self, w: &mut Writer) {
-        VarU32::from(self.len()).encode(w);
+        VarU32::from_usize(self.len()).encode(w);
 
         for item in self {
             item.encode(w);
@@ -75,43 +75,23 @@ impl<T: Encode> Encode for Vec<T> {
 
 impl<'a, T: Decode<'a>> Decode<'a> for Vec<T> {
     fn decode(r: &mut Reader<'a>) -> Option<Self> {
-        let len: usize = VarU32::decode(r)?.into();
-        if r.remaining() < len {
-            return None;
-        }
+        let len: usize = VarU32::decode(r)?.to_usize();
 
         let data = (0..len).map(|_| T::decode(r)).collect::<Option<_>>()?;
         Some(data)
     }
 }
 
-impl Encode for Bytes {
-    fn encode(&self, w: &mut Writer) {
-        w.put_slice(self.as_ref());
-    }
-}
-
-impl Decode<'_> for Bytes {
-    fn decode(r: &mut Reader<'_>) -> Option<Self> {
-        let n = r.remaining();
-
-        let mut w = BytesMut::zeroed(n);
-        r.copy_to_slice(&mut w);
-
-        Some(w.freeze())
-    }
-}
-
 impl<'a, P: Prefix> Encode for RefBytes<'a, P> {
     fn encode(&self, w: &mut Writer) {
-        P::from(self.len()).encode(w);
+        P::from_usize(self.len()).encode(w);
         w.put_slice(self.as_ref());
     }
 }
 
 impl<'a, P: Prefix> Decode<'a> for RefBytes<'a, P> {
     fn decode(r: &mut Reader<'a>) -> Option<Self> {
-        let len = P::decode(r)?.into();
+        let len = P::decode(r)?.to_usize();
         Some(Self::new(&r[..len]))
     }
 }

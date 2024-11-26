@@ -1,10 +1,10 @@
 pub mod impls;
 pub mod order;
 
-use std::fmt::Debug;
 pub use impls::*;
 pub use order::*;
 
+use std::fmt::Debug;
 use bytes::BytesMut;
 
 /// Writer is a type alias for a BytesMut instance.
@@ -47,12 +47,22 @@ pub trait EnumDecoder : Debug + Sized {
     fn read<V: Variant>(r: &mut Reader) -> Option<Self>;
 }
 
+/// Numeric trait is implemented for all those integer types that can be converted
+/// from usize & isize and vice versa
+pub trait Numeric: Sized {
+    fn from_usize(val: usize) -> Self;
+    fn to_usize(self) -> usize;
+
+    fn from_isize(val: isize) -> Self;
+    fn to_isize(self) -> isize;
+}
+
 /// Prefix is a trait implemented by all those numeric types that implement the
 /// [`Encode`] and [`Decode`] trait and as well as can be converted to and from
 /// usize.
-pub trait Prefix: Encode + for <'a> Decode<'a> + From<usize> + Into<usize> {}
+pub trait Prefix: Encode + for <'a> Decode<'a> + Numeric {}
 
 /// Variant is a trait implemented by all those numeric types that implement the
 /// [`Encode`] and [`Decode`] trait and as well as can be converted to and from
 /// isize.
-pub trait Variant: Encode + for <'a> Decode<'a> + From<isize> + Into<isize> {}
+pub trait Variant: Encode + for <'a> Decode<'a> + Numeric {}

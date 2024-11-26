@@ -1,7 +1,7 @@
 #![allow(non_camel_case_types)]
 
 use bytes::{Buf, BufMut};
-use crate::{generate, ByteOrder, Decode, Encode, Prefix, Reader, Variant, Writer, BE};
+use crate::{generate, ByteOrder, Numeric, Decode, Encode, Prefix, Reader, Variant, Writer, BE};
 
 generate!(U8, <>, u8);
 generate!(I8, <>, i8);
@@ -117,41 +117,70 @@ impl_ordered!(F64, <E: ByteOrder>, get_f64, put_f64);
 
 #[macro_export]
 macro_rules! impl_numeric {
+    ($type:ident) => {
+        impl Numeric for $type {
+            fn from_usize(value: usize) -> Self {
+                value as $type
+            }
+
+            fn to_usize(self) -> usize {
+                self as usize
+            }
+            
+            fn from_isize(value: isize) -> Self {
+                value as $type
+            }
+
+            fn to_isize(self) -> isize {
+                self as isize
+            }
+        }
+        
+        impl Prefix for $type {}
+        impl Variant for $type {}
+    };
+}
+
+impl_numeric!(u8);
+impl_numeric!(i8);
+impl_numeric!(u16);
+impl_numeric!(i16);
+impl_numeric!(u32);
+impl_numeric!(i32);
+impl_numeric!(u64);
+impl_numeric!(i64);
+
+#[macro_export]
+macro_rules! impl_numeric_ordered {
     ($type:ident, <$($gen:ident: $gen_constraint:ident),*>, $base_type:ty) => {
-        impl<$($gen: $gen_constraint),*> From<usize> for $type<$($gen),*> {
-            fn from(value: usize) -> Self {
+        impl<$($gen: $gen_constraint),*> Numeric for $type<$($gen),*> {
+            fn from_usize(value: usize) -> Self {
                 Self::new(value as $base_type)
             }
-        }
 
-        impl<$($gen: $gen_constraint),*> From<$type<$($gen),*>> for usize {
-            fn from(value: $type<$($gen),*>) -> usize {
-                value.get() as usize
+            fn to_usize(self) -> usize {
+                self.get() as usize
             }
-        }
-
-        impl<$($gen: $gen_constraint),*> From<isize> for $type<$($gen),*> {
-            fn from(value: isize) -> Self {
+            
+            fn from_isize(value: isize) -> Self {
                 Self::new(value as $base_type)
             }
-        }
 
-        impl<$($gen: $gen_constraint),*> From<$type<$($gen),*>> for isize {
-            fn from(value: $type<$($gen),*>) -> isize {
-                value.get() as isize
+            fn to_isize(self) -> isize {
+                self.get() as isize
             }
         }
-
+        
         impl<$($gen: $gen_constraint),*> Prefix for $type<$($gen),*> {}
         impl<$($gen: $gen_constraint),*> Variant for $type<$($gen),*> {}
     };
 }
 
-impl_numeric!(U8, <>, u8);
-impl_numeric!(I8, <>, i8);
-impl_numeric!(U16, <E: ByteOrder>, u16);
-impl_numeric!(I16, <E: ByteOrder>, i16);
-impl_numeric!(U32, <E: ByteOrder>, u32);
-impl_numeric!(I32, <E: ByteOrder>, i32);
-impl_numeric!(U64, <E: ByteOrder>, u64);
-impl_numeric!(I64, <E: ByteOrder>, i64);
+impl_numeric_ordered!(U8, <>, u8);
+impl_numeric_ordered!(I8, <>, i8);
+impl_numeric_ordered!(U16, <E: ByteOrder>, u16);
+impl_numeric_ordered!(I16, <E: ByteOrder>, i16);
+impl_numeric_ordered!(U32, <E: ByteOrder>, u32);
+impl_numeric_ordered!(I32, <E: ByteOrder>, i32);
+impl_numeric_ordered!(U64, <E: ByteOrder>, u64);
+impl_numeric_ordered!(I64, <E: ByteOrder>, i64);

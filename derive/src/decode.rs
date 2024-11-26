@@ -149,7 +149,7 @@ pub(super) fn derive_decode(item: TokenStream) -> Result<TokenStream> {
                     fn decode(r: &mut &#lifetime [u8]) -> Option<Self> {
                         use binary::*;
 
-                        let disc = #encoding_type::decode(r)?.into();
+                        let disc = #encoding_type::decode(r)?.to_isize();
 
                         match disc {
                             #decode_arms
@@ -164,7 +164,7 @@ pub(super) fn derive_decode(item: TokenStream) -> Result<TokenStream> {
                     fn read<V: binary::Variant>(r: &mut binary::Reader) -> Option<Self> {
                         use binary::*;
 
-                        let disc = V::decode(r)?.into();
+                        let disc = V::decode(r)?.to_isize();
 
                         match disc {
                             #decode_arms

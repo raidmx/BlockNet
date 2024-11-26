@@ -95,14 +95,14 @@ pub(super) fn derive_encode(item: TokenStream) -> Result<TokenStream> {
 
                         type1_arms.append_all(quote! {
                             Self::#variant_name { #(#field_names,)* } => {
-                                #encoding_type::from(#disc).encode(w);
+                                #encoding_type::from_isize(#disc).encode(w);
                                 #encode_fields
                             }
                         });
 
                         type2_arms.append_all(quote! {
                             Self::#variant_name { #(#field_names,)* } => {
-                                V::from(#disc).encode(w);
+                                V::from_isize(#disc).encode(w);
                                 #encode_fields
                             }
                         });
@@ -123,21 +123,21 @@ pub(super) fn derive_encode(item: TokenStream) -> Result<TokenStream> {
 
                         type1_arms.append_all(quote! {
                             Self::#variant_name(#(#field_names,)*) => {
-                                #encoding_type::from(#disc).encode(w);
+                                #encoding_type::from_isize(#disc).encode(w);
                                 #encode_fields
                             }
                         });
 
                         type2_arms.append_all(quote! {
                             Self::#variant_name(#(#field_names,)*) => {
-                                V::from(#disc).encode(w);
+                                V::from_isize(#disc).encode(w);
                                 #encode_fields
                             }
                         });
                     }
                     Fields::Unit => {
-                        type1_arms.append_all(quote!(Self::#variant_name => #encoding_type::from(#disc).encode(w),));
-                        type2_arms.append_all(quote!(Self::#variant_name => V::from(#disc).encode(w),));
+                        type1_arms.append_all(quote!(Self::#variant_name => #encoding_type::from_isize(#disc).encode(w),));
+                        type2_arms.append_all(quote!(Self::#variant_name => V::from_isize(#disc).encode(w),));
                     },
                 }
             }

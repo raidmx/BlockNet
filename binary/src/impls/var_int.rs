@@ -1,5 +1,5 @@
 use bytes::{Buf, BufMut};
-use crate::{generate, impl_numeric, Decode, Encode, Prefix, Reader, Variant, Writer};
+use crate::{generate, impl_numeric_ordered, Decode, Encode, Reader, Variant, Writer, Prefix, Numeric};
 
 generate!(VarI32, <>, i32);
 generate!(VarU32, <>, u32);
@@ -134,7 +134,7 @@ impl Decode<'_> for VarU64 {
     }
 }
 
-impl_numeric!(VarI32, <>, i32);
-impl_numeric!(VarU32, <>, u32);
-impl_numeric!(VarI64, <>, i64);
-impl_numeric!(VarU64, <>, u64);
+impl_numeric_ordered!(VarI32, <>, i32);
+impl_numeric_ordered!(VarU32, <>, u32);
+impl_numeric_ordered!(VarI64, <>, i64);
+impl_numeric_ordered!(VarU64, <>, u64);
