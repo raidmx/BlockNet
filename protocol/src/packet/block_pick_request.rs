@@ -1,11 +1,9 @@
-use zuri_net_derive::proto;
-
-use crate::proto::io::BlockPos;
+use derive::{Decode, Encode, Packet};
+use crate::types::BlockPos;
 
 /// Sent by the client when it requests to pick a block in the world and place its item in their
 /// inventory.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct BlockPickRequest {
     /// The position at which the client requested to pick the block. The block at that position
     /// should have its item put in HotBarSlot if it is empty.

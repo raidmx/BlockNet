@@ -1,8 +1,7 @@
-use crate::proto::ints::VarU32;
-use zuri_net_derive::proto;
-
-use crate::proto::types::command::CommandPermissionLevel;
-use crate::proto::types::world::PermissionLevel;
+use binary::VarU32;
+use derive::{Decode, Encode, Packet};
+use crate::types::command::CommandPermissionLevel;
+use crate::types::world::PermissionLevel;
 
 // todo: flags
 #[derive(Debug, Clone)]
@@ -40,8 +39,7 @@ pub enum ActionPermission {
 /// only. The client may also send this packet to the server when it updates one of these settings
 /// through the in-game settings interface. The server should verify if the player actually has
 /// permission to update those settings.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct AdventureSettings {
     /// A set of flags that specify certain properties of the player, such as whether or not it can
     /// fly and/or move through blocks.

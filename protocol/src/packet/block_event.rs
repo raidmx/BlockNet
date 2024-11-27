@@ -1,12 +1,10 @@
-use crate::proto::ints::VarI32;
-use zuri_net_derive::proto;
-
-use crate::proto::io::UBlockPos;
+use binary::VarI32;
+use derive::{Decode, Encode, Packet};
+use crate::types::UBlockPos;
 
 /// Sent by the server to initiate a certain event that has to do with blocks in specific, for
 /// example opening chests.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct BlockEvent {
     /// The position of the block that an event occurred at.
     pub position: UBlockPos,
@@ -18,8 +16,8 @@ pub struct BlockEvent {
     pub event_data: VarI32,
 }
 
-#[proto(VarI32)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = VarI32)]
 pub enum BlockEventType {
     None,
     ChangeChestState,

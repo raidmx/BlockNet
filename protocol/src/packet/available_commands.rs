@@ -1,14 +1,10 @@
 use std::iter;
-
-use zuri_net_derive::proto;
-
-use crate::proto::ints::VarU32;
-use crate::proto::io::{Readable, Reader, Writable, Writer};
-use crate::proto::types::command::{CommandEnum, CommandEnumConstraint};
+use derive::{Decode, Encode, Packet};
+use crate::types::command::{CommandEnum, CommandEnumConstraint};
 
 /// Sent by the server to define a list of all commands that the client can use on the server, along
 /// with how to use them.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct AvailableCommands {
     pub enum_values: Vec<String>,
     pub chained_subcommand_values: Vec<String>,
@@ -20,17 +16,14 @@ pub struct AvailableCommands {
     pub constraints: Vec<CommandEnumConstraint>,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct Command {
     pub name: String,
     pub description: String,
     pub flags: u16,
     pub permission_level: u8,
     pub aliases_offset: u32,
-    #[len_type(VarU32)]
     pub chained_subcommand_offsets: Vec<u16>,
-    #[len_type(VarU32)]
     pub overloads: Vec<CommandOverload>,
 }
 
@@ -39,14 +32,12 @@ pub struct Command {
 /// Can be compared to operator overloading in languages such as Java or C++. Commands are often
 /// given different subcommands by specifying multiple overloads with different signatures and a
 /// subcommand name as first parameter. This is not the only use for this however.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct CommandOverload {
     /// If true, the command overload uses chained subcommands.
     pub chaining: bool,
     /// À list of parameters specying the usage of the command when this specific overload is
     /// applied.
-    #[len_type(VarU32)]
     pub parameters: Vec<CommandParameter>,
 }
 
@@ -55,8 +46,7 @@ pub struct CommandOverload {
 ///
 /// An example of such a parameter is for instance the choice between `survival`, `creative` and
 /// `adventure` mode in the `/gamemode <mode>` command.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct CommandParameter {
     pub name: String,
     pub parameter_type: u32, // todo: give this a type
@@ -64,8 +54,8 @@ pub struct CommandParameter {
     pub options: CommandParameterOption,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum CommandParameterOption {
     #[default]
     None = 0,
@@ -74,23 +64,19 @@ pub enum CommandParameterOption {
     AsChainedCommand,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct ChainedSubcommand {
     pub name: String,
-    #[len_type(VarU32)]
     pub values: Vec<ChainedSubcommandValue>,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct ChainedSubcommandValue {
     pub index: u16,
     pub value: u16,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct DynamicEnum {
     pub type_name: String,
     pub values: String,

@@ -1,6 +1,6 @@
 use binary::{VarI32, VarU64};
 use derive::{Decode, Encode, Packet};
-use crate::actor_event::ActorEventType;
+use crate::types::ActorEventType;
 
 /// Sent by the server when a particular event happens that has to do with an entity. Some of these
 /// events are entity-specific, for example a wolf shaking itself dry, but others are used for each

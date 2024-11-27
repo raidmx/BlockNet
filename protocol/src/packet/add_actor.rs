@@ -1,16 +1,12 @@
-use crate::proto::ints::{VarI64, VarU32, VarU64};
 use glam::Vec3;
-use zuri_net_derive::proto;
-
-use crate::proto::types::attribute::AttributeValue;
-use crate::proto::types::entity_data::{EntityMetadata, EntityProperties};
-use crate::proto::types::world::EntityLink;
+use binary::{VarI64, VarU64};
+use derive::{Decode, Encode, Packet};
+use crate::types::{AttributeValue, EntityLink, EntityMetadata, EntityProperties};
 
 /// Sent by the server to the client to spawn an entity to the player. It is used for every entity
 /// except other players, for which the AddPlayer packet is used.
-#[proto]
-#[derive(Debug, Clone)]
-pub struct AddActor {
+#[derive(Debug, Clone, Encode, Decode, Packet)]
+pub struct AddActor<'a> {
     /// The unique ID of the entity. The unique ID is a value that remains consistent across
     /// different sessions of the same world, but most servers simply fill the runtime ID of the
     /// entity out for this field.
@@ -19,7 +15,7 @@ pub struct AddActor {
     /// are generally identified in packets using this runtime ID.
     pub entity_runtime_id: VarU64,
     /// The string entity type of the entity. A list of these entities may be found online.
-    pub entity_type: String,
+    pub entity_type: &'a str,
     /// The position to spawn the entity on. If the entity is on a distance that the player cannot
     /// see it, the entity will still show up if the player moves closer.
     pub position: Vec3,
@@ -40,18 +36,16 @@ pub struct AddActor {
     pub body_yaw: f32,
     /// A list of attributes that the entity has. It includes attributes such as its health,
     /// movement speed, etc.
-    #[len_type(VarU32)]
-    pub attributes: Vec<AttributeValue>,
+    pub attributes: Vec<AttributeValue<'a>>,
     /// A map of entity metadata, which includes flags and data properties that alter in particular
     /// the way the entity looks. Flags include ones such as 'on fire' and 'sprinting'. The meta
     /// values are indexed by their property key.
-    pub entity_metadata: EntityMetadata,
+    pub entity_metadata: EntityMetadata<'a>,
     /// A list of properties that the entity inhibits. These properties define specific attributes
     /// of the entity.
     pub entity_properties: EntityProperties,
     /// A list of entity links that are currently active on the entity. These links alter the way
     /// the entity shows up when first spawned in terms of it shown as riding an entity. Setting
     /// these links is important for new viewers to see the entity is riding another entity.
-    #[len_type(VarU32)]
     pub entity_links: Vec<EntityLink>,
 }

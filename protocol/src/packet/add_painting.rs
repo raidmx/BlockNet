@@ -1,11 +1,10 @@
-use crate::proto::ints::{VarI32, VarI64, VarU64};
 use glam::Vec3;
-use zuri_net_derive::proto;
+use binary::{VarI32, VarI64, VarU64};
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to the client to make a painting entity show up. It is one of the few
 /// entities that cannot be sent using the AddActor packet.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct AddPainting {
     /// The unique ID of the entity. The unique ID is a value that remains consistent across
     /// different sessions of the same world, but most servers simply fill the runtime ID of the

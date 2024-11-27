@@ -1,8 +1,7 @@
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to the client. The packet is currently unused by both client and server.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct AddBehaviourTree {
     /// An unused string.
     pub behaviour_tree: String,

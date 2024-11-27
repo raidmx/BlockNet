@@ -2,7 +2,7 @@ use binary::VarU64;
 use derive::{Decode, Encode, Packet};
 
 #[repr(u32)]
-#[derive(Debug, Clone, PartialEq, Encode, Decode)]
+#[derive(Debug, Clone, Encode, Decode)]
 #[encoding(type = VarI32)]
 /// Each variant contains the runtime ID of the player that the animation should be played upon. The
 /// runtime ID is unique for each world session, and entities are generally identified in packets

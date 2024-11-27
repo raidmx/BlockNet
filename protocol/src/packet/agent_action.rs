@@ -1,9 +1,8 @@
-use crate::proto::ints::VarI32;
 use bytes::Bytes;
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
-#[proto(VarI32)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = VarI32)]
 pub enum AgentActionType {
     None,
     Attack,
@@ -28,8 +27,7 @@ pub enum AgentActionType {
 
 /// An Education Edition packet sent from the server to the client to return a response to a
 /// previously requested action.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct AgentAction {
     /// JSON identifier referenced in the initial action.
     pub identifier: String,
