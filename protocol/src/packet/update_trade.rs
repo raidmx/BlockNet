@@ -1,4 +1,3 @@
-use crate::proto::ints::{VarI32, VarI64};
 use bytes::Bytes;
 use binary::{VarI32, VarI64};
 use derive::{Decode, Encode, Packet};
