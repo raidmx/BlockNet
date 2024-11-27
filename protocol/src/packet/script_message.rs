@@ -1,12 +1,10 @@
 use bytes::Bytes;
-
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
 /// Used to communicate custom messages from the client to the server, or from the server to the
 /// client. While the name may suggest this packet is used for the discontinued scripting API, it is
 /// likely instead for the GameTest framework.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct ScriptMessage {
     /// The identifier of the message, used by either party to identify the message data sent.
     pub identifier: String,

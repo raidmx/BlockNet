@@ -1,12 +1,9 @@
-use zuri_nbt::encoding::NetworkLittleEndian;
-use zuri_net_derive::proto;
-
-use crate::proto::io::NBT;
+use derive::{Decode, Encode, Packet};
+use crate::nbt::{NetworkLittleEndian, NBT};
 
 /// An alternative to synced actor data. It is not exactly clear how it functions.
-#[proto]
-#[derive(Debug, Clone)]
-pub struct SyncActorProperty {
+#[derive(Debug, Clone, Encode, Decode, Packet)]
+pub struct SyncActorProperty<'a> {
     /// The purpose of this field is unknown.
-    pub property_data: NBT<NetworkLittleEndian>,
+    pub property_data: NBT<'a, NetworkLittleEndian>,
 }

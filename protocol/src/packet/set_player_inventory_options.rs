@@ -1,7 +1,6 @@
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
-#[proto]
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Encode, Decode, Packet)]
 pub struct SetPlayerInventoryOptions {
     pub left_inventory_tab: InventoryLeftTab,
     pub right_inventory_tab: InventoryRightTab,
@@ -10,8 +9,8 @@ pub struct SetPlayerInventoryOptions {
     pub crafting_layout: InventoryLayout,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum InventoryLayout {
     None,
     Survival,
@@ -19,8 +18,8 @@ pub enum InventoryLayout {
     Creative,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum InventoryLeftTab {
     None,
     Construction,
@@ -31,8 +30,8 @@ pub enum InventoryLeftTab {
     Survival,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum InventoryRightTab {
     None,
     FullScreen,

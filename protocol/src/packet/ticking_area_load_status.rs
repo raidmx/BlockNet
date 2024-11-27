@@ -1,8 +1,7 @@
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to the client to notify the client of a ticking area's loading status.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct TickingAreasLoadStatus {
     /// True if the server is waiting for the area's preload.
     pub preload: bool,

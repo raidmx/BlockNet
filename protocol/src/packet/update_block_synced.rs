@@ -1,14 +1,12 @@
-use crate::proto::ints::{VarI64, VarU32};
-use zuri_net_derive::proto;
-
-use crate::proto::io::UBlockPos;
-use crate::proto::types::world::UpdateBlockTransition;
+use binary::{VarI64, VarU32};
+use derive::{Decode, Encode, Packet};
+use crate::types::UBlockPos;
+use crate::types::world::UpdateBlockTransition;
 
 /// Sent by the server to synchronise the falling of a falling block entity with the transitioning
 /// back and forth from and to a solid block. It is used to prevent the entity from flickering, and
 /// is used in places such as the pushing of blocks with pistons.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct UpdateBlockSynced {
     /// The block position at which a block is updated.
     pub position: UBlockPos,

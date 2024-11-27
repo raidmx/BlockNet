@@ -1,25 +1,22 @@
 use glam::Vec3;
 use uuid::Uuid;
-
-use crate::proto::ints::{VarI32, VarI64, VarU32, VarU64};
-use zuri_nbt::encoding::NetworkLittleEndian;
-use zuri_net_derive::proto;
-
-use crate::proto::io::{UBlockPos, NBT};
-use crate::proto::types::education::EducationSharedResourceURI;
-use crate::proto::types::game_rule::GameRule;
-use crate::proto::types::item_stack::ItemEntry;
-use crate::proto::types::player::PlayerMovementSettings;
-use crate::proto::types::world::{
+use binary::{VarI32, VarI64, VarU64};
+use derive::{Decode, Encode, Packet};
+use crate::nbt::{NetworkLittleEndian, NBT};
+use crate::types::education::EducationSharedResourceURI;
+use crate::types::game_rule::GameRule;
+use crate::types::item_stack::ItemEntry;
+use crate::types::player::PlayerMovementSettings;
+use crate::types::{SliceU32, UBlockPos};
+use crate::types::world::{
     BlockEntry, Difficulty, Dimension, ExperimentData, GameType, Generator, PermissionLevel,
 };
 
 /// Sent by the server to send information about the world the player will be spawned in. It
 /// contains information about the position the player spawns in, and information about the world in
 /// general such as its game rules.
-#[proto]
-#[derive(Debug, Clone)]
-pub struct StartGame {
+#[derive(Debug, Clone, Encode, Decode, Packet)]
+pub struct StartGame<'a> {
     /// The unique ID of the player. The unique ID is a value that remains consistent across
     /// different sessions of the same world, but most servers simply fill the runtime ID of the
     /// entity out for this field.
@@ -48,7 +45,7 @@ pub struct StartGame {
     /// custom biome name if any custom biomes are present through behaviour packs.
     pub user_defined_biome_name: String,
     /// The dimension that the player spawns in. Most mini-game servers use the Overworld dimension.
-    #[enum_header(VarI32)]
+    #[encoding(type = VarI32)]
     pub dimension: Dimension,
     /// The generator used for the world. Most vanilla worlds use the Overworld generator.
     pub generator: Generator,
@@ -57,7 +54,7 @@ pub struct StartGame {
     pub world_game_mode: GameType,
     /// The difficulty of the world. It is not exactly clear why this is sent to the client, as the
     /// client does not need to know the difficulty of the world.
-    #[enum_header(VarI32)]
+    #[encoding(type = VarI32)]
     pub difficulty: Difficulty,
     /// The block on which the world spawn of the world. This coordinate has no effect on the place
     /// that the client spawns, but it does have an effect on the direction that a compass points.
@@ -110,12 +107,10 @@ pub struct StartGame {
     /// The game rules currently active with their respective values. The value of these game rules
     /// may be either 'bool', 'i32' or 'j32'. Some game rules are server side only and don't need to
     /// be sent to the client.
-    #[len_type(VarU32)]
     pub game_rules: Vec<GameRule>,
     /// A list of experiments that are either enabled or disabled in the world that the player
     /// spawns in.
-    #[len_type(u32)]
-    pub experiments: Vec<ExperimentData>,
+    pub experiments: SliceU32<ExperimentData>,
     /// Specifies if any experiments were previously toggled in this world. It is likely used for
     /// metrics.
     pub experiments_previously_toggled: bool,
@@ -128,7 +123,7 @@ pub struct StartGame {
     pub start_with_map_enabled: bool,
     /// The permission level of the player. This is used to determine what actions the player can
     /// perform.
-    #[enum_header(VarI32)]
+    #[encoding(type = VarI32)]
     pub player_permissions: PermissionLevel,
     /// The radius around the player in which chunks are ticked. Most servers set this value to a
     /// fixed number, as it does not necessarily affect anything client-side.
@@ -204,12 +199,10 @@ pub struct StartGame {
     /// both client-side and server-side.
     pub enchantment_seed: VarI32,
     /// A list of all custom blocks registered on the server.
-    #[len_type(VarU32)]
-    pub blocks: Vec<BlockEntry>,
+    pub blocks: Vec<BlockEntry<'a>>,
     /// A list of all items with their legacy IDs which are available in the game. Failing to send
     /// any of the items that are in the game will crash mobile clients.
-    #[len_type(VarU32)]
-    pub items: Vec<ItemEntry>,
+    pub items: Vec<ItemEntry<'a>>,
     /// A unique ID specifying the session of the player. A random UUID should be filled out for
     /// this field.
     pub multi_player_correlation_id: String,
@@ -221,7 +214,7 @@ pub struct StartGame {
     pub game_version: String,
     /// Contains properties that should be applied on the player. These properties are the same as
     /// the ones that are sent in the SyncActorProperty packet.
-    pub property_data: NBT<NetworkLittleEndian>,
+    pub property_data: NBT<'a, NetworkLittleEndian>,
     /// Checksum to ensure block states between the server and client match. This can simply be left
     /// empty, and the client will avoid trying to verify it.
     pub server_block_state_checksum: u64,
@@ -240,38 +233,38 @@ pub struct StartGame {
     pub server_authorative_sound: bool,
 }
 
-#[proto(VarI32)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = VarI32)]
 pub enum EditorWorldType {
     NotEditor,
     Project,
     TestLevel,
 }
-#[proto(i16)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = i16)]
 pub enum SpawnBiomeType {
     Default,
     USerDefined,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum ChatRestrictionLevel {
     None,
     Dropped,
     Disabled,
 }
 
-#[proto(VarI32)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Encode, Decode)]
+#[encoding(type = VarI32)]
 pub enum EducationEditionRegion {
     None,
     RestOfWorld,
     China,
 }
 
-#[proto(VarI32)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = VarI32)]
 pub enum GamePublishSetting {
     None,
     InviteOnly,

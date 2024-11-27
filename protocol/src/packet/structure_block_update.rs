@@ -1,16 +1,15 @@
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
-use crate::proto::io::UBlockPos;
-use crate::proto::types::structure::{
+use crate::types::structure::{
     StructureBlockType, StructureRedstoneSaveMode, StructureSettings,
 };
+use crate::types::UBlockPos;
 
 /// Sent by the client when it updates a structure block using the in-game UI. The data it contains
 /// depends on the type of structure block that it is. In Minecraft Bedrock Edition v1.11, there is
 /// only the `Export `structure block type, but in v1.13 the ones present in Java Edition will,
 /// according to the wiki, be added too.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct StructureBlockUpdate {
     /// The position of the structure block that is updated.
     pub position: UBlockPos,

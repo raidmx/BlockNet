@@ -1,11 +1,9 @@
-use zuri_net_derive::proto;
-
-use crate::proto::io::BlockPos;
+use derive::{Decode, Encode, Packet};
+use crate::types::BlockPos;
 
 /// Sent by the server to play a sound to the client. Some of the sounds may only be started using
 /// this packet and must be stopped using the StopSound packet.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct PlaySound {
     /// The name of the sound to play.
     pub sound_name: String,

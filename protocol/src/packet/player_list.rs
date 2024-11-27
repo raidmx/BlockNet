@@ -1,13 +1,11 @@
 use uuid::Uuid;
-use zuri_net_derive::proto;
+use binary::VarI64;
+use derive::{Decode, Encode};
+use crate::types::device::Device;
+use crate::types::skin::Skin;
 
-use crate::proto::ints::{VarI64, VarU32};
-use crate::proto::io::{Readable, Reader, Writable, Writer};
-use crate::proto::types::device::Device;
-use crate::proto::types::skin::Skin;
-
-#[proto(u8)]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum PlayerListAction {
     Add(PlayerListAdd),
     Remove(PlayerListRemove),
@@ -18,19 +16,16 @@ pub enum PlayerListAction {
 /// packet is obligatory when sending an AddPlayer packet. The added player will not show up to a
 /// client if it has not been added to the player list, because several properties of the player are
 /// obtained from the player list, such as the skin.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct PlayerList {
     /// The action to execute upon the player list. The entries that are contained specify which
     /// entries are added or removed from the player list.
     pub action_type: PlayerListAction,
 }
 
-#[proto]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Encode, Decode)]
 pub struct PlayerListRemove {
     /// A list of UUIDs to remove.
-    #[len_type(VarU32)]
     pub uuids: Vec<Uuid>,
 }
 
@@ -67,8 +62,7 @@ impl Readable<PlayerListAdd> for PlayerListAdd {
 
 /// An entry found in the PlayerList packet. It represents a single player using the UUID found in
 /// the entry, and contains several properties such as the skin.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct PlayerListEntry {
     /// The UUID of the player as sent in the Login packet when the client joined the server. It
     /// must match this UUID exactly for the correct XBOX Live icon to show up in the list.

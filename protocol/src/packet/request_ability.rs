@@ -1,8 +1,6 @@
 use num_traits::{FromPrimitive, ToPrimitive};
 
-use crate::proto::io::{Reader, Writer};
-use crate::proto::packet::PacketType;
-use crate::proto::types::ability::Ability;
+use crate::types::ability::Ability;
 
 /// Sent by the client to the server to request permission for a specific ability from the server.
 #[derive(Debug, Clone)]

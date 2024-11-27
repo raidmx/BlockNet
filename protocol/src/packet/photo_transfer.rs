@@ -1,12 +1,11 @@
 use bytes::Bytes;
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to transfer a photo (image) file to the client. It is typically used to
 /// transfer photos so that the client can display it in a portfolio in Education Edition. While
 /// previously usable in the default Bedrock Edition, the displaying of photos in books was disabled
 /// and the packet now has little use anymore.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct PhotoTransfer {
     /// The name of the photo to transfer. It is the exact file name that the client will download
     /// the photo as, including the extension of the file.
@@ -28,8 +27,8 @@ pub struct PhotoTransfer {
     pub new_photo_name: String,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum PhotoType {
     Portfolio,
     PhotoItem,

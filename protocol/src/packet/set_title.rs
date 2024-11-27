@@ -1,10 +1,9 @@
-use crate::proto::ints::VarI32;
-use zuri_net_derive::proto;
+use binary::VarI32;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to make a title, subtitle or action bar shown to a player. It has several
 /// fields that allow setting the duration of the titles.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct SetTitle {
     /// The type of the action that should be executed upon the title of a player. It specifies the
     /// response of the client to the packet.
@@ -29,8 +28,8 @@ pub struct SetTitle {
     pub platform_online_id: String,
 }
 
-#[proto(VarI32)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = VarI32)]
 pub enum TitleAction {
     Clear,
     Reset,

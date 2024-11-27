@@ -1,10 +1,8 @@
-use crate::proto::ints::VarU32;
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the client to the server to send chat messages, and by the server to the client to
 /// forward or send messages, which may be chat, popups, tips etc.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct Text {
     /// The type of the text sent. When a client sends this to the server, it should always be Chat.
     pub text_type: TextType,
@@ -18,8 +16,8 @@ pub struct Text {
     pub platform_chat_id: String,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum TextType {
     Raw(TextTypeSimple),
     Chat(TextTypeWithSource),
@@ -35,8 +33,7 @@ pub enum TextType {
     ObjectAnnouncement(TextTypeSimple),
 }
 
-#[proto]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct TextTypeSimple {
     /// Specifies if any of the messages need to be translated. It seems that where % is found in
     /// translatable text types, these are translated regardless of this bool. Translatable text
@@ -47,8 +44,7 @@ pub struct TextTypeSimple {
     pub message: String,
 }
 
-#[proto]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct TextTypeWithSource {
     /// Specifies if any of the messages need to be translated. It seems that where % is found in
     /// translatable text types, these are translated regardless of this bool. Translatable text
@@ -62,8 +58,7 @@ pub struct TextTypeWithSource {
     pub message: String,
 }
 
-#[proto]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct TextTypeWithParams {
     /// Specifies if any of the messages need to be translated. It seems that where % is found in
     /// translatable text types, these are translated regardless of this bool. Translatable text
@@ -74,6 +69,5 @@ pub struct TextTypeWithParams {
     pub message: String,
     /// A list of parameters that should be filled into the message. These parameters are only
     /// written if the type of the packet is Translation, Tip, Popup or JukeboxPopup.
-    #[len_type(VarU32)]
     pub parameters: Vec<String>,
 }

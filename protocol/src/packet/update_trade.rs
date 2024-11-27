@@ -1,13 +1,12 @@
 use crate::proto::ints::{VarI32, VarI64};
 use bytes::Bytes;
-use zuri_net_derive::proto;
-
-use crate::proto::types::inventory::Window;
+use binary::{VarI32, VarI64};
+use derive::{Decode, Encode, Packet};
+use crate::types::inventory::Window;
 
 /// Sent by the server to update the trades offered by a villager to a player. It is sent at the
 /// moment that a player interacts with a villager.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct UpdateTrade {
     /// The trading window that the client currently has opened.
     pub window: Window,

@@ -1,19 +1,18 @@
-use crate::proto::ints::VarI64;
 use bytes::Bytes;
 use glam::Vec3;
-use zuri_net_derive::proto;
+use binary::VarI64;
+use derive::{Decode, Encode, Packet};
 
-use crate::proto::types::world::Dimension;
+use crate::types::world::Dimension;
 
 /// Sent by the server to spawn a particle effect client-side. Unlike other packets that result in
 /// the appearing of particles, this packet can show particles that are not hardcoded in the client.
 /// They can be added and changed through behaviour packs to implement custom particles.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct SpawnParticleEffect {
     /// The dimension that the particle is spawned in. Its exact usage is not clear, as the
     /// dimension has no direct effect on the particle.
-    #[enum_header(u8)]
+    #[encoding(type = u8)]
     pub dimension: Dimension,
     /// The unique ID of the entity that the spawned particle may be attached to. If this ID is not
     /// negative one, the Position below will be interpreted as relative to the position of the

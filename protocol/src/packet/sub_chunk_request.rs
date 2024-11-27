@@ -1,21 +1,18 @@
-use crate::proto::ints::VarI32;
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
-use crate::proto::io::BlockPos;
-use crate::proto::types::world::{Dimension, SubChunkOffset};
+use crate::types::world::{Dimension, SubChunkOffset};
+use crate::types::{BlockPos, SliceU32};
 
 /// Requests specific sub-chunks from the server using a center point.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct SubChunkRequest {
     /// The dimension of the sub-chunks.
-    #[enum_header(VarI32)]
+    #[encoding(type = VarI32)]
     pub dimension: Dimension,
     /// An absolute sub-chunk center point used as a base point for all sub-chunks requested. The X
     /// and Z coordinates represent the chunk coordinates, while the Y coordinate is the absolute
     /// sub-chunk index.
     pub position: BlockPos,
     /// Requested offsets around the center point.
-    #[len_type(u32)]
-    pub offsets: Vec<SubChunkOffset>,
+    pub offsets: SliceU32<SubChunkOffset>,
 }

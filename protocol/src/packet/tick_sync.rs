@@ -1,10 +1,9 @@
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the client and the server to maintain a synchronized, server-authoritative tick between
 /// the client and the server. The client sends this packet first, and the server should reply with
 /// another one of these packets, including the response time.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct TickSync {
     /// The timestamp on which the client sent this packet to the server. The server should fill out
     /// that same value when replying. The client_request_timestamp is always zero.

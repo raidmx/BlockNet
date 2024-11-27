@@ -1,7 +1,6 @@
-use crate::proto::ints::VarU32;
-use zuri_net_derive::proto;
-
-use crate::proto::io::UBlockPos;
+use binary::VarU32;
+use derive::{Decode, Encode, Packet};
+use crate::types::UBlockPos;
 
 #[derive(Clone, Copy, Debug)]
 pub enum BlockUpdate {
@@ -19,8 +18,7 @@ impl BlockUpdate {
 
 /// Sent by the server to update a block client-side, without resending the entire chunk that the
 /// block is located in. It is particularly useful for block breaking/placing.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct UpdateBlock {
     /// The block position at which a block is updated.
     pub position: UBlockPos,

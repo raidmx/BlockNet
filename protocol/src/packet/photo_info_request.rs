@@ -1,11 +1,9 @@
-use zuri_net_derive::proto;
-
-use crate::proto::ints::VarI64;
+use binary::VarI64;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the client to request photo information from the server. This packet was deprecated in
 /// 1.19.80.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct PhotoInfoRequest {
     /// The ID of the photo.
     pub photo_id: VarI64,

@@ -1,9 +1,7 @@
-use crate::proto::ints::VarI32;
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
 /// Allows the client to display dialog boxes for interacting with NPCs.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct NPCDialogue {
     /// The unique ID of the NPC being requested.
     pub entity_unique_id: u64,
@@ -20,8 +18,8 @@ pub struct NPCDialogue {
     pub action_json: String,
 }
 
-#[proto(VarI32)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = VarI32)]
 pub enum NPCDialogueAction {
     Open,
     Close,

@@ -1,10 +1,9 @@
-use crate::proto::ints::VarU32;
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
+use crate::types::SliceU16;
 
 /// Sent by the server to inform the client on what resource packs the server has. It sends a list
 /// of the resource packs it has and basic information on them like the version and description.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct ResourcePacksInfo {
     /// Specifies if the client must accept the texture packs the server has in order to join the
     /// server. If set to true, the client gets the option to either download the resource packs and
@@ -17,21 +16,17 @@ pub struct ResourcePacksInfo {
     pub forcing_server_packs: bool,
     /// A list of behaviour packs that the client needs to download before joining the server. All
     /// of these behaviour packs will be applied together.
-    #[len_type(u16)]
-    pub behaviour_packs: Vec<BehaviourPackInfo>,
+    pub behaviour_packs: SliceU16<BehaviourPackInfo>,
     /// A list of texture packs that the client needs to download before joining the server. The
     /// order of these texture packs is not relevant in this packet. It is however important in the
     /// ResourcePackStack packet.
-    #[len_type(u16)]
-    pub texture_packs: Vec<TexturePackInfo>,
+    pub texture_packs: SliceU16<TexturePackInfo>,
     /// A list of texture packs to be downloaded over HTTP.
-    #[len_type(VarU32)]
     pub pack_urls: Vec<PackUrl>,
 }
 
 /// Represents a resource pack served to the client over HTTP.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct PackUrl {
     /// The unique identifier for the resource pack.
     pub uuid: String,
@@ -40,8 +35,7 @@ pub struct PackUrl {
 }
 
 /// Holds information about the behaviour pack such as its name, description and version.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct BehaviourPackInfo {
     /// The UUID of the behaviour pack. Each behaviour pack downloaded must have a different UUID in
     /// order for the client to be able to handle them properly.
@@ -66,8 +60,7 @@ pub struct BehaviourPackInfo {
 }
 
 /// Holds information about the texture pack such as its name, description and version.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct TexturePackInfo {
     /// The UUID of the texture pack. Each texture pack downloaded must have a different UUID in
     /// order for the client to be able to handle them properly.

@@ -1,12 +1,11 @@
 use bytes::Bytes;
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
-use crate::proto::types::resource_pack::ResourcePackType;
+use crate::types::resource_pack::ResourcePackType;
 
 /// Sent by the server to the client to inform the client about the data contained in one of the
 /// resource packs that are about to be sent.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct ResourcePackDataInfo {
     /// The unique ID of the resource pack that the info concerns.
     pub uuid: String,

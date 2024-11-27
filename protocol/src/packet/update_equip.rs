@@ -1,14 +1,13 @@
-use crate::proto::ints::{VarI32, VarI64};
 use bytes::Bytes;
-use zuri_net_derive::proto;
+use binary::{VarI32, VarI64};
+use derive::{Decode, Encode, Packet};
 
-use crate::proto::types::inventory::Window;
+use crate::types::inventory::Window;
 
 /// Sent by the server to the client upon opening a horse inventory. It is used to set the content
 /// of the inventory and specify additional properties, such as the items that are allowed to be put
 /// in slots of the inventory.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct UpdateEquip {
     /// The window that the UpdateEquip packet concerns. It is the window sent for the horse
     /// inventory that was opened before this packet was sent.

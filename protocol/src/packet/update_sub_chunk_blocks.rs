@@ -1,26 +1,21 @@
-use crate::proto::ints::{VarU32, VarU64};
-use zuri_net_derive::proto;
-
-use crate::proto::io::BlockPos;
-use crate::proto::types::world::UpdateBlockTransition;
+use binary::{VarU32, VarU64};
+use derive::{Decode, Encode, Packet};
+use crate::types::BlockPos;
+use crate::types::world::UpdateBlockTransition;
 
 /// Essentially just the UpdateBlock packet, however for a set of blocks in a sub-chunk.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct UpdateSubChunkBlocks {
     /// The position of the sub-chunk being referred to.
     pub position: BlockPos,
     /// Each updated block change entry.
-    #[len_type(VarU32)]
     pub blocks: Vec<BlockChangeEntry>,
     /// Each updated block change entry for the second layer, usually for waterlogged blocks.
-    #[len_type(VarU32)]
     pub extra: Vec<BlockChangeEntry>,
 }
 
 /// Used by the UpdateSubChunkBlocks packet to specify a block change entry.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct BlockChangeEntry {
     /// The position of the block being changed.
     pub block_pos: BlockPos,
@@ -35,6 +30,6 @@ pub struct BlockChangeEntry {
     /// The type of the transition that happened. It is either `BlockToEntity`, when a block placed
     /// becomes a falling entity, or `EntityToBlock`, when a falling entity hits the ground and
     /// becomes a solid block again.
-    #[enum_header(VarU32)]
+    #[encoding(type = VarU32)]
     pub synced_update_type: UpdateBlockTransition,
 }

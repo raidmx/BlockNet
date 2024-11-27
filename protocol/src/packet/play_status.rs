@@ -1,17 +1,15 @@
-use crate::proto::ints::I32BE;
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to update a player on the play status. This includes failed statuses due to a
 /// mismatched version, but also success statuses.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct PlayStatus {
     /// The status of the packet.
     pub status: PlayStatusType,
 }
 
-#[proto(I32BE)]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
+#[encoding(type = b32)]
 pub enum PlayStatusType {
     LoginSuccess,
     LoginFailedClient,

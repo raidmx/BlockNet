@@ -1,12 +1,10 @@
 use glam::Vec2;
-
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the client to the server when the player is moving but the server does not allow it to
 /// update its movement using the MovePlayer packet. It includes situations where the player is
 /// riding an entity like a boat. If this is the case, the packet is sent roughly every tick.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct PlayerInput {
     /// The movement vector of the input. It should be thought of in Pocket Edition controls, where
     /// specific the arrows (or a combination of two, resulting in a diagonal arrow) decide the

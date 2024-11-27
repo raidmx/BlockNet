@@ -1,13 +1,12 @@
-use crate::proto::ints::VarU64;
 use glam::Vec3;
-use zuri_net_derive::proto;
+use binary::VarU64;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to make a player respawn client-side. It is sent in response to a
 /// PlayerAction packet with the action type Respawn. As of 1.13, the server sends two of these
 /// packets with different states, and the client sends one of these back in order to complete the
 /// respawn.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct Respawn {
     /// The position on which the player should be respawned. The position might be in a different
     /// dimension, in which case the client should first be sent a ChangeDimension packet.
@@ -20,8 +19,8 @@ pub struct Respawn {
     pub entity_runtime_id: VarU64,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum RespawnState {
     SearchingForSpawn,
     ReadyToSpawn,

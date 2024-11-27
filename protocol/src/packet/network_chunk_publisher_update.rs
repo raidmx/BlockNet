@@ -1,8 +1,8 @@
-use crate::proto::ints::VarU32;
 use glam::IVec2;
-use zuri_net_derive::proto;
+use binary::VarU32;
+use derive::{Decode, Encode, Packet};
 
-use crate::proto::io::BlockPos;
+use crate::types::{BlockPos, SliceU32};
 
 /// Sent by the server to change the point around which chunks are and remain loaded. This is useful
 /// for mini-game servers, where only one area is ever loaded, in which case the
@@ -11,8 +11,7 @@ use crate::proto::io::BlockPos;
 /// extraordinarily useful, and most servers just send it constantly at the position of the player.
 /// If the packet is not sent at all, no chunks will be shown to the player, regardless of where
 /// they are sent.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct NetworkChunkPublisherUpdate {
     /// The block position around which chunks loaded will remain shown to the client. Most servers
     /// set this position to the position of the player itself.
@@ -23,6 +22,5 @@ pub struct NetworkChunkPublisherUpdate {
     /// the left by four.)
     pub radius: VarU32,
     /// It is unclear what the purpose of this field is.
-    #[len_type(u32)]
-    pub saved_chunks: Vec<IVec2>,
+    pub saved_chunks: SliceU32<IVec2>,
 }

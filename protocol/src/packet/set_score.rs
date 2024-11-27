@@ -1,12 +1,10 @@
 use num_traits::{FromPrimitive, ToPrimitive};
-
-use crate::proto::io::{Reader, Writer};
-use crate::proto::packet::PacketType;
-use crate::proto::types::scoreboard::{ScoreboardAction, ScoreboardEntry};
+use derive::{Decode, Encode, Packet};
+use crate::types::scoreboard::{ScoreboardAction, ScoreboardEntry};
 
 /// Sent by the server to send the contents of a scoreboard to the player. It may be used to either
 /// add, remove or edit entries on the scoreboard.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct SetScore {
     /// The type of the action to execute upon the scoreboard with the entries that the packet has.
     /// If `action_type` is `Modify`, all entries will be added to the scoreboard if not yet
