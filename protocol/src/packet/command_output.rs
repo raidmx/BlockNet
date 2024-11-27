@@ -1,8 +1,6 @@
 use num_traits::{FromPrimitive, ToPrimitive};
-
-use crate::proto::io::{Readable, Reader, Writable, Writer};
-use crate::proto::packet::PacketType;
-use crate::proto::types::command::{CommandOrigin, CommandOutputMessage, CommandOutputType};
+use binary::VarU32;
+use crate::types::command::{CommandOrigin, CommandOutputMessage, CommandOutputType};
 
 /// Sent by the server to the client to send text as output of a command. Most servers do not use
 /// this packet and instead simply send Text packets, but there is reason to send it. If the origin
@@ -21,7 +19,7 @@ pub struct CommandOutput {
     /// The amount of times that a command was executed successfully as a result of the command that
     /// was requested. For servers, this is usually a rather meaningless fields, but for vanilla,
     /// this is applicable for commands created with functions.
-    pub success_count: u32,
+    pub success_count: VarU32,
     /// A list of all output messages that should be sent to the player. Whether they are shown or
     /// not, depends on the type of the messages.
     pub output_messages: Vec<CommandOutputMessage>,

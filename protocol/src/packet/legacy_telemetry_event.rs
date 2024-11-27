@@ -1,13 +1,12 @@
 #![allow(deprecated)]
 
-use crate::proto::ints::VarU64;
-use crate::proto::types::event::EventType;
-use zuri_net_derive::proto;
+use binary::VarU64;
+use derive::{Decode, Encode, Packet};
+use crate::types::event::EventType;
 
 /// Sent by the server to send an event with additional data. It is typically sent to the client for
 /// telemetry reasons, much like the SimpleEvent packet.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 #[deprecated = "Deprecated as of Bedrock Edition v1.20.10"]
 pub struct LegacyTelemetryEvent {
     /// The runtime ID of the player. The runtime ID is unique for each world session, and entities

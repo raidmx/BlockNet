@@ -1,11 +1,9 @@
-use zuri_net_derive::proto;
-
-use crate::proto::io::UBlockPos;
+use derive::{Decode, Encode, Packet};
+use crate::types::UBlockPos;
 
 /// Sent by the client to update the server on which page was opened in a book on a lectern, or if
 /// the book should be removed from it.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct LecternUpdate {
     /// The page number in the book that was opened by the player on the lectern.
     pub page: u8,

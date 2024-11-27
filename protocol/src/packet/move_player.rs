@@ -1,12 +1,11 @@
-use crate::proto::ints::VarU64;
 use glam::Vec3;
-use zuri_net_derive::proto;
+use binary::VarU64;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by players to send their movement to the server, and by the server to update the movement
 /// of player entities to other players. When using the new movement system, this is only sent by
 /// the server.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct MovePlayer {
     /// The runtime ID of the player. The runtime ID is unique for each world session, and entities
     /// are generally identified in packets using this runtime ID.
@@ -30,8 +29,8 @@ pub struct MovePlayer {
     pub tick: VarU64,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum MoveMode {
     Normal(MoveModeNotTeleport),
     Reset(MoveModeNotTeleport),
@@ -39,8 +38,8 @@ pub enum MoveMode {
     Rotation(MoveModeNotTeleport),
 }
 
-#[proto(i32)]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
+#[encoding(type = i32)]
 pub enum TeleportCause {
     None,
     Projectile,
@@ -49,8 +48,7 @@ pub enum TeleportCause {
     Behaviour,
 }
 
-#[proto]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct MoveModeNotTeleport {
     /// Specifies if the player is considered on the ground. Note that proxies or hacked clients
     /// could fake this to always be true, so it should not be taken for granted.
@@ -60,8 +58,7 @@ pub struct MoveModeNotTeleport {
     pub ridden_entity_runtime_id: VarU64,
 }
 
-#[proto]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct MoveModeTeleport {
     /// Specifies if the player is considered on the ground. Note that proxies or hacked clients
     /// could fake this to always be true, so it should not be taken for granted.

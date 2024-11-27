@@ -1,27 +1,21 @@
-use crate::proto::ints::VarU32;
-use crate::proto::types::colour::RGB;
 use glam::{Vec2, Vec3};
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
+use crate::types::RGB;
 
 /// Gives a custom camera specific instructions to operate.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct CameraInstruction {
-    /// A compound tag of the instructions to sent. The structure of this tag is currently unknown.
-    #[len_type(VarU32)]
     pub data: Vec<CameraInstructionEntry>,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct CameraInstructionEntry {
     pub set: Option<CameraInstructionSet>,
     pub clear: Option<bool>,
     pub fade: Option<CameraInstructionFade>,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct CameraInstructionSet {
     pub preset: u32,
     pub ease: Option<CameraEase>,
@@ -31,15 +25,14 @@ pub struct CameraInstructionSet {
     pub default: Option<bool>,
 }
 
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct CameraEase {
     pub r#type: CameraEaseType,
     pub duration: f32,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum CameraEaseType {
     EasingTypeLinear,
     EasingTypeSpring,
@@ -75,8 +68,8 @@ pub enum CameraEaseType {
     EasingTypeInOutElastic,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = u8)]
 pub struct CameraInstructionFade {
     pub fade_in_duration: f32,
     pub wait_duration: f32,

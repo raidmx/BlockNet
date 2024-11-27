@@ -1,10 +1,9 @@
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
-use crate::proto::types::education::EducationSharedResourceURI;
+use crate::types::education::EducationSharedResourceURI;
 
 /// Transmits education resource settings to all clients.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct EducationResourceURI {
     /// The resource that is being referenced.
     pub resource: EducationSharedResourceURI,

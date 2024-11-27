@@ -1,13 +1,10 @@
 use glam::Vec3;
-
-use zuri_net_derive::proto;
-
-use crate::proto::ints::VarU64;
+use binary::VarU64;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the server if and only if server authoritative movement with rewind is enabled. The
 /// packet is used to correct movement at a specific point in time.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct CorrectPlayerMovePrediction {
     /// The position that the player is supposed to be at the tick written in the field below. The
     /// client will change its current position based on movement after that tick starting from the

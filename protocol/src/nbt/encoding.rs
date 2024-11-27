@@ -15,12 +15,12 @@ pub trait Encoding {
 
 /// NetworkLittleEndian encoding is used for encoding NBT objects over the network and the wire. It encodes
 /// the integers in variable length encoding format which optimizes bandwidth.
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, PartialEq, Clone, Copy)]
 pub struct NetworkLittleEndian;
 
 /// LittleEndian encoding is used for encoding NBT objects for saving NBT files locally such as player world saves,
 /// player data, etc.
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, PartialEq, Clone, Copy)]
 pub struct LittleEndian;
 
 impl Encoding for NetworkLittleEndian {

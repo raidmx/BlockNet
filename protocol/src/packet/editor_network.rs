@@ -1,12 +1,10 @@
-use crate::proto::io::NBT;
-use zuri_nbt::encoding::NetworkLittleEndian;
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
+use crate::nbt::{NetworkLittleEndian, NBT};
 
-/// Sent from the server to the client and vise-versa to communicate editor-mode related
+/// Sent from the server to the client and vice versa to communicate editor-mode related
 /// information. It carries a single compound tag containing the relevant information.
-#[proto]
-#[derive(Debug, Clone)]
-pub struct EditorNetwork {
+#[derive(Debug, Clone, Encode, Decode, Packet)]
+pub struct EditorNetwork<'a> {
     /// A network little endian compound tag holding data relevant to the editor.
-    pub payload: NBT<NetworkLittleEndian>,
+    pub payload: NBT<'a, NetworkLittleEndian>,
 }

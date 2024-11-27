@@ -1,9 +1,8 @@
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to make the camera shake client-side. This feature was added for map-making
 /// partners.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct CameraShake {
     /// The intensity of the shaking. The client limits this value to 4, so anything higher may not
     /// function, at least as expected.
@@ -17,15 +16,15 @@ pub struct CameraShake {
     pub action: CameraShakeAction,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum CameraShakeAction {
     Add,
     Stop,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum CameraShakeType {
     Positional,
     Rotational,

@@ -1,19 +1,18 @@
-use crate::proto::ints::VarU64;
+use binary::VarU64;
 use glam::Vec3;
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the client when it interacts with another entity in some way. It used to be used for
 /// normal entity and block interaction, but this is no longer the case now.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct Interact {
     /// The type of action that was executed by the player.
     pub action_type: InteractionAction,
 }
 
-#[proto(u8)]
 #[repr(u8)]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum InteractionAction {
     LeaveVehicle(InteractionLeaveVehicle) = 3,
     MouseOverEntity(InteractionMouseOverEntity),
@@ -21,8 +20,7 @@ pub enum InteractionAction {
     OpenInventory(OpenInventory),
 }
 
-#[proto]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct InteractionLeaveVehicle {
     /// The runtime ID of the entity that the player interacted with.
     pub target_entity_runtime_id: VarU64,
@@ -30,8 +28,7 @@ pub struct InteractionLeaveVehicle {
     pub position: Vec3,
 }
 
-#[proto]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct InteractionMouseOverEntity {
     /// The runtime ID of the entity that the player interacted with.
     pub target_entity_runtime_id: VarU64,
@@ -40,15 +37,13 @@ pub struct InteractionMouseOverEntity {
     pub position: Vec3,
 }
 
-#[proto]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct InteractionNPCOpen {
     /// The runtime ID of the entity that the player interacted with.
     pub target_entity_runtime_id: VarU64,
 }
 
-#[proto]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct OpenInventory {
     /// Unused.
     pub target_entity_runtime_id: VarU64,

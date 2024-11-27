@@ -1,11 +1,9 @@
-use zuri_net_derive::proto;
-
-use crate::proto::ints::VarI64;
+use binary::VarI64;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to use an Education Edition camera on a player. It produces an image
 /// client-side.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct Camera {
     /// The unique ID of the camera entity from which the picture was taken.
     pub camera_entity_unique_id: VarI64,

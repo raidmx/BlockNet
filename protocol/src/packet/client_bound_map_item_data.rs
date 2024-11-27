@@ -1,14 +1,12 @@
 use glam::IVec3;
-
-use crate::proto::io::{Readable, Reader, Writable, Writer};
-use crate::proto::packet::PacketType;
-use crate::proto::types::colour::VarRGBA;
-use crate::proto::types::map::{MapDecoration, MapTrackedObject, MapUpdateFlag};
-
+use derive::{Decode, Encode, Packet};
+use crate::types::colour::VarRGBA;
+use crate::types::map::{MapDecoration, MapTrackedObject, MapUpdateFlag};
+    
 /// Sent by the server to the client to update the data of a map shown to the client. It is sent
 /// with a combination of flags that specify what data is updated. It may be used to update specific
 /// parts of the map only. It is not required to send the full map each time when updating one part.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Encode, Decode, Packet)]
 pub struct ClientBoundMapItemData {
     /// The unique identifier that represents the map that is updated over network. It remains
     /// consistent across sessions.

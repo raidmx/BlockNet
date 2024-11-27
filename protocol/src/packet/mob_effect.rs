@@ -1,10 +1,9 @@
-use crate::proto::ints::{VarI32, VarU32, VarU64};
-use zuri_net_derive::proto;
+use binary::{VarI32, VarU64};
+use derive::{Decode, Encode};
 
 /// Sent by the server to apply an effect to the player, for example an effect like poison. It may
 /// also be used to modify existing effects, or removing them completely.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct MobEffect {
     /// The runtime ID of the entity. The runtime ID is unique for each world session, and entities
     /// are generally identified in packets using this runtime ID.
@@ -25,18 +24,18 @@ pub struct MobEffect {
     pub duration: VarI32,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum MobEffectOperation {
     Add = 1,
     Modify,
     Remove,
 }
 
-#[proto(VarU32)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone, Encode, Decode)]
+#[encoding(type = VarU32)]
 pub enum MobEffectType {
-    #[fallback]
+    #[default]
     Unknown = 0,
     Speed = 1,
     Slowness,

@@ -1,11 +1,9 @@
-use crate::proto::ints::VarI32;
-use zuri_net_derive::proto;
-
-use crate::proto::io::BlockPos;
+use binary::VarI32;
+use derive::{Decode, Encode, Packet};
+use crate::types::BlockPos;
 
 /// The purpose of this packet is currently unknown.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct GameTestRequest {
     /// The purpose of this field is currently unknown.
     pub max_tests_per_batch: VarI32,
@@ -23,8 +21,8 @@ pub struct GameTestRequest {
     pub name: String,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum GameTestRequestRotation {
     None,
     Rotate90,

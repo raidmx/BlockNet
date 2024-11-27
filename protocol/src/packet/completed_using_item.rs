@@ -1,10 +1,9 @@
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
-use crate::proto::types::item::UseItemMethod;
+use crate::types::item::UseItemMethod;
 
 /// Sent by the server to notify client that it should be done using the item it is currently using.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct CompletedUsingItem {
     /// The item ID of the item that the client completed using. This should typically be the ID of
     /// the item held in the hand.

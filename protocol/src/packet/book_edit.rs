@@ -1,16 +1,15 @@
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the client when it edits a book. It is sent each time a modification was made and the
 /// player stops its typing 'session', rather than simply after closing the book.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct BookEdit {
     /// The type of the book edit action. The data obtained depends on what type this is.
     pub action_type: BookAction,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum BookAction {
     ReplacePage(ReplaceOrAddPage),
     AddPage(ReplaceOrAddPage),
@@ -19,8 +18,7 @@ pub enum BookAction {
     Sign(Sign),
 }
 
-#[proto]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct ReplaceOrAddPage {
     /// The slot in which the book that was edited may be found. Typically, the server should check
     /// if this slot matches the held item slot of the player.
@@ -36,8 +34,7 @@ pub struct ReplaceOrAddPage {
     pub photo_name: String,
 }
 
-#[proto]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct DeletePage {
     /// The slot in which the book that was edited may be found. Typically, the server should check
     /// if this slot matches the held item slot of the player.
@@ -47,8 +44,7 @@ pub struct DeletePage {
     pub page_number: u8,
 }
 
-#[proto]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct SwapPages {
     /// The slot in which the book that was edited may be found. Typically, the server should check
     /// if this slot matches the held item slot of the player.
@@ -60,8 +56,7 @@ pub struct SwapPages {
     pub secondary_page_number: u8,
 }
 
-#[proto]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct Sign {
     /// The slot in which the book that was edited may be found. Typically, the server should check
     /// if this slot matches the held item slot of the player.

@@ -1,12 +1,11 @@
-use crate::proto::ints::VarU32;
 use bytes::Bytes;
-use zuri_net_derive::proto;
+use binary::VarU32;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the client in response to a ModalFormRequest, after the player has submitted the form
 /// sent. It contains the options/properties selected by the player, or a JSON encoded 'null' if the
 /// form was closed by clicking the X at the top right corner of the form.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct ModalFormResponse {
     /// The form ID of the form the client has responded to. It is the same as the ID sent in the
     /// ModalFormRequest, and may be used to identify which form was submitted.
@@ -20,8 +19,8 @@ pub struct ModalFormResponse {
     pub cancel_reason: Option<ModalFormCancelReason>,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum ModalFormCancelReason {
     UserClosed,
     UserBusy,

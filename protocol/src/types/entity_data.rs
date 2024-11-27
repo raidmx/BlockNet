@@ -54,7 +54,7 @@ pub struct FloatEntityProperty {
     pub value: f32,
 }
 
-#[derive(Debug, Clone, Encode, Decode)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
 #[encoding(type = VarU32)]
 pub enum EntityDataEntry<'a> {
     U8(u8),

@@ -1,13 +1,11 @@
-use crate::proto::ints::VarI32;
 use glam::Vec3;
-use zuri_net_derive::proto;
-
-use crate::proto::types::level_event::LevelEventType;
+use binary::VarI32;
+use derive::{Decode, Encode, Packet};
+use crate::types::level_event::LevelEventType;
 
 /// Sent by the server to make a certain event in the level occur. It ranges from particles, to
 /// sounds, and other events such as starting rain and block breaking.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct LevelEvent {
     /// The event that is being 'called'.
     pub event_type: LevelEventType,

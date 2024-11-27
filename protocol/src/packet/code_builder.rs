@@ -1,8 +1,7 @@
-use zuri_net_derive::proto;
+use derive::{Decode, Encode, Packet};
 
 /// Education Edition packet sent by the server to open the URL to a Code Builder server.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct CodeBuilder {
     /// The URL to the Code Builder (WS) server.
     pub url: String,

@@ -1,12 +1,9 @@
-use zuri_net_derive::proto;
-
-use crate::proto::ints::VarU32;
-use crate::proto::io::UBlockPos;
+use derive::{Decode, Encode, Packet};
+use crate::types::UBlockPos;
 
 /// Sent by the client to update a command block at a specific position. The command block may be
 /// either a physical block or an entity.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct CommandBlockUpdate {
     /// Specifies the variant of the command block, as command blocks can be blocks, minecarts, and
     /// potentially other objects in the future.
@@ -31,23 +28,22 @@ pub struct CommandBlockUpdate {
     pub execute_on_first_tick: bool,
 }
 
-#[proto(VarU32)]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
+#[encoding(type = VarU32)]
 pub enum CommandBlockMode {
     Impulse,
     Repeating,
     Chain,
 }
 
-#[proto(u8)]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
+#[encoding(type = u8)]
 pub enum CommandBlockVariant {
     Minecart(CommandBlockVariantMinecart),
     Block(CommandBlockVariantBlock),
 }
 
-#[proto]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct CommandBlockVariantBlock {
     /// The position of the command block updated. Nothing happens if no command block is set at
     /// this position.
@@ -64,8 +60,7 @@ pub struct CommandBlockVariantBlock {
     pub conditional: bool,
 }
 
-#[proto]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct CommandBlockVariantMinecart {
     /// The runtime ID of the minecart entity carrying the command block that is updated.
     pub minecart_entity_runtime_id: u64,

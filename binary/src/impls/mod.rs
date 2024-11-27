@@ -19,7 +19,7 @@ pub use sequence::*;
 macro_rules! generate {
     ($name:ident, <$($gen:ident: $gen_constraint:ident),*>, $type:ty $(,$lifetime:tt)?) => {
         #[allow(non_snake_case)]
-        #[derive(Default, Clone)]
+        #[derive(Clone, PartialEq, Default)]
         pub struct $name<$($lifetime,)? $($gen: $gen_constraint),*> {
             val: $type,
             $( $gen_constraint: std::marker::PhantomData<$gen>, )*

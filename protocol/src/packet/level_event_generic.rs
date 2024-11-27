@@ -1,13 +1,10 @@
 use bytes::Bytes;
-
-use zuri_net_derive::proto;
-
-use crate::proto::ints::VarI32;
+use binary::VarI32;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to send a 'generic' level event to the client. This packet sends an NBT
 /// serialised object and may for that reason be used for any event holding additional data.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct LevelEventGeneric {
     /// A unique identifier that identifies the event called. The data that follows has fields in
     /// the NBT depending on what event it is.

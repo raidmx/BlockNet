@@ -1,14 +1,11 @@
 use bytes::Bytes;
 use glam::IVec2;
-
-use crate::proto::io::{Reader, Writer};
-use crate::proto::packet::PacketType;
-use crate::proto::types::world::SubChunkRequestMode;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to provide the client with a chunk of a world data (16xYx16 blocks).
 /// Typically, a certain amount of chunks is sent to the client before sending it the spawn
 /// PlayStatus packet, so that the client spawns in a loaded world.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct LevelChunk {
     /// The X and Z coordinates of the chunk sent. You can convert a block coordinate to a chunk
     /// coordinate by right-shifting it four bits.

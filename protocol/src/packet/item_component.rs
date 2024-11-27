@@ -1,13 +1,9 @@
-use zuri_net_derive::proto;
-
-use crate::proto::ints::VarU32;
-use crate::proto::types::item_stack::ItemComponentEntry;
+use derive::{Decode, Encode, Packet};
+use crate::types::ItemComponentEntry;
 
 /// Sent by the server to attach client-side components to a custom item.
-#[proto]
-#[derive(Debug, Clone)]
-pub struct ItemComponent {
+#[derive(Debug, Clone, Encode, Decode, Packet)]
+pub struct ItemComponent<'a> {
     /// A list of all custom items with their respective components set.
-    #[len_type(VarU32)]
-    pub items: Vec<ItemComponentEntry>,
+    pub items: Vec<ItemComponentEntry<'a>>,
 }

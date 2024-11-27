@@ -1,10 +1,8 @@
-use crate::proto::ints::VarI32;
-use crate::proto::io::{Readable, Reader, Writable, Writer};
-use crate::proto::packet::PacketType;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to disconnect the client using an optional message to send as the disconnect
 /// screen.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct Disconnect {
     /// The reason why the user was kicked. Used for telemetry.
     pub reason: VarI32,

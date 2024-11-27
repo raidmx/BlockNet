@@ -1,18 +1,15 @@
-use crate::proto::ints::VarI32;
 use glam::Vec3;
-use zuri_net_derive::proto;
-
-use crate::proto::types::world::Dimension;
+use derive::{Decode, Encode, Packet};
+use crate::types::world::Dimension;
 
 /// Sent by the server to the client to send a dimension change screen client-side. Once the screen
 /// is cleared client-side, the client will send a PlayerAction packet with the dimension change
 /// done action attached.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct ChangeDimension {
     /// The dimension that the client should be changed to. The dimension must be different from the
     /// one the player is currently in, otherwise the client will freeze on the screen.
-    #[enum_header(VarI32)]
+    #[encoding(type = VarI32)]
     pub dimension: Dimension,
     /// The position in the new dimension that the player is spawned in.
     pub position: Vec3,

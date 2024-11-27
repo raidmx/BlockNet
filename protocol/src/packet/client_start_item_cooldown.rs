@@ -1,11 +1,9 @@
-use zuri_net_derive::proto;
-
-use crate::proto::ints::VarI32;
+use binary::VarI32;
+use derive::{Decode, Encode, Packet};
 
 /// Sent by the client to the server to initiate a cooldown on an item. The purpose of this packet
 /// isn't entirely clear.
-#[proto]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct ClientStartItemCooldown {
     /// The category of the item to start the cooldown on.
     pub category: String,
