@@ -404,7 +404,7 @@ use derive::{Decode, Encode};
 use binary::{Decode, Encode};
 
 #[derive(Debug, Clone, Copy, Encode, Decode, PartialEq)]
-#[encoding(type = VarU32)]
+#[encoding(type = w32)]
 pub enum PacketId {
     Login = 1,
     PlayStatus = 2,

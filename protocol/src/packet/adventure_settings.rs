@@ -1,4 +1,4 @@
-use binary::VarU32;
+use binary::w32;
 use derive::{Decode, Encode, Packet};
 use crate::types::command::CommandPermissionLevel;
 use crate::types::world::PermissionLevel;
@@ -43,17 +43,17 @@ pub enum ActionPermission {
 pub struct AdventureSettings {
     /// A set of flags that specify certain properties of the player, such as whether or not it can
     /// fly and/or move through blocks.
-    pub flags: VarU32,
+    pub flags: w32,
     /// A permission level that specifies the kind of commands that the player is allowed to use.
     pub command_permission_level: CommandPermissionLevel,
     /// Much like flags, a set of flags that specify actions that the player is allowed to take,
     /// such as whether it is allowed to edit blocks, open doors etc.
-    pub action_permissions: VarU32,
+    pub action_permissions: w32,
     /// The permission level of the player as it shows up in the player list built up using the
     /// PlayerList packet.
     pub permission_level: PermissionLevel,
     /// The use of this field is currently unknown.
-    pub custom_stored_permissions: VarU32,
+    pub custom_stored_permissions: w32,
     /// A unique identifier of the player. This must be filled out with the entity unique ID of the
     /// player.
     pub player_unique_id: i64,

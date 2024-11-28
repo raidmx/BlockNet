@@ -1,7 +1,7 @@
 use derive::{Decode, Encode};
 
 #[derive(Default, Debug, Clone, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum LevelEventType {
     #[default]
     Undefined,

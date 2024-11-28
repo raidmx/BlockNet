@@ -1,5 +1,5 @@
-use glam::Vec3;
-use binary::VarU64;
+use crate::types::Vec3;
+use binary::w64;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the server if and only if server authoritative movement with rewind is enabled. The
@@ -15,5 +15,5 @@ pub struct CorrectPlayerMovePrediction {
     /// Specifies if the player was on the ground at the time of the tick below.
     pub on_ground: bool,
     /// The tick of the movement which was corrected by this packet.
-    pub tick: VarU64,
+    pub tick: w64,
 }

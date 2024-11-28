@@ -29,7 +29,7 @@ pub struct CommandBlockUpdate {
 }
 
 #[derive(Debug, Clone, PartialEq, Encode, Decode)]
-#[encoding(type = VarU32)]
+#[encoding(type = w32)]
 pub enum CommandBlockMode {
     Impulse,
     Repeating,

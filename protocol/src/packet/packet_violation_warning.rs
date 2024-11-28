@@ -1,4 +1,4 @@
-use binary::VarI32;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the client when it receives an invalid packet from the server. It holds some information
@@ -11,19 +11,19 @@ pub struct PacketViolationWarning {
     /// violation depends on the severity sent.
     pub severity: PacketViolationSeverity,
     /// The ID of the invalid packet that was received.
-    pub packet_id: VarI32,
+    pub packet_id: v32,
     /// A description on the violation of the packet.
     pub violation_context: String,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum PacketViolationType {
     Malformed,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum PacketViolationSeverity {
     Warning,
     FinalWarning,

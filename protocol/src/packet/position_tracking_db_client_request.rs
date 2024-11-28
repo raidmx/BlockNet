@@ -1,4 +1,4 @@
-use binary::VarI32;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the client to request the position and dimension of a 'tracking ID'. These IDs are
@@ -13,7 +13,7 @@ pub struct PositionTrackingDBClientRequest {
     /// A unique ID used to identify the request. The server responds with a
     /// PositionTrackingDBServerBroadcast packet holding the same ID, so that the client can find
     /// out what that packet was in response to.
-    pub tracking_id: VarI32,
+    pub tracking_id: v32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]

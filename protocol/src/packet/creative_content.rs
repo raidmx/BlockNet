@@ -1,4 +1,4 @@
-use binary::VarU32;
+use binary::w32;
 use derive::{Decode, Encode, Packet};
 use crate::types::ItemStack;
 
@@ -16,7 +16,7 @@ pub struct CreativeContent<'a> {
 pub struct CreativeItem<'a> {
     /// A unique ID for the creative item. It has to be unique for each creative item sent to the
     /// client. An incrementing ID per creative item does the job.
-    pub creative_item_network_id: VarU32,
+    pub creative_item_network_id: w32,
     /// The item that should be added to the creative inventory.
     pub item: ItemStack<'a>,
 }

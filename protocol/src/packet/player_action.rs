@@ -1,4 +1,4 @@
-use binary::{VarI32, VarU64};
+use binary::{v32, w64};
 use derive::{Decode, Encode, Packet};
 
 use crate::types::player::PlayerActionType;
@@ -10,7 +10,7 @@ use crate::types::UBlockPos;
 pub struct PlayerAction {
     /// The runtime ID of the player. The runtime ID is unique for each world session, and entities
     /// are generally identified in packets using this runtime ID.
-    pub entity_runtime_id: VarU64,
+    pub entity_runtime_id: w64,
     /// The type of action that was executed by the player.
     pub action_type: PlayerActionType,
     /// The position of the target block, if the action with the ActionType set concerned a block.
@@ -22,5 +22,5 @@ pub struct PlayerAction {
     pub result_position: UBlockPos,
     /// The face of the target block that was touched. If the action with the ActionType set
     /// concerned a block. If not, the face is always zero.
-    pub block_face: VarI32,
+    pub block_face: v32,
 }

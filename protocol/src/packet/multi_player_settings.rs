@@ -10,7 +10,7 @@ pub struct MultiPlayerSettings {
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum MultiPlayerSettingsAction {
     Enable,
     Disable,

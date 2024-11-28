@@ -13,7 +13,7 @@ pub struct SetSpawnPosition {
     pub position: UBlockPos,
     /// The dimension that had its spawn updated. This is specifically relevant for behaviour added
     /// in 1.16 such as the respawn anchor, which allows setting the spawn in a specific dimension.
-    #[encoding(type = VarI32)]
+    #[encoding(type = v32)]
     pub dimension: Dimension,
     /// A new field added in 1.16. It holds the spawn position of the world. This spawn position is
     /// `{-i32::MIN, -i32::MIN, -i32::MIN}` for a default spawn position.

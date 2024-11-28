@@ -1,4 +1,4 @@
-use binary::VarI32;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 use crate::types::Window;
 
@@ -12,7 +12,7 @@ pub struct ContainerSetData {
     pub window: Window,
     /// The key of the property. Multiple properties share the same key, but the functionality
     /// depends on the type of the container that the data is set to.
-    pub key: VarI32,
+    pub key: v32,
     /// The value of the property. Its use differs per property.
-    pub value: VarI32,
+    pub value: v32,
 }

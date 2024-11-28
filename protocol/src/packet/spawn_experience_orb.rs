@@ -1,5 +1,5 @@
-use glam::Vec3;
-use binary::VarI32;
+use crate::types::Vec3;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to spawn an experience orb entity client-side. Much like the AddPainting
@@ -13,5 +13,5 @@ pub struct SpawnExperienceOrb {
     /// the orb depends on the amount of experience in the orb: There are 11 possible sizes for the
     /// orb, for 1–2, 3–6, 7–16, 17–36, 37–72, 73–148, 149–306, 307–616, 617–1236, 1237–2476, and
     /// 2477 and up.
-    pub experience_amount: VarI32,
+    pub experience_amount: v32,
 }

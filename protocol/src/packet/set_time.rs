@@ -1,4 +1,4 @@
-use binary::VarI32;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to update the current time client-side. The client actually advances time
@@ -8,5 +8,5 @@ use derive::{Decode, Encode, Packet};
 pub struct SetTime {
     /// The current time. The time is not limited to 24000 (time of day), but continues progressing
     /// after that.
-    pub time: VarI32,
+    pub time: v32,
 }

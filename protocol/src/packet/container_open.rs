@@ -1,4 +1,4 @@
-use binary::VarI64;
+use binary::v64;
 use derive::{Decode, Encode, Packet};
 use crate::types::container::ContainerType;
 use crate::types::inventory::Window;
@@ -24,5 +24,5 @@ pub struct ContainerOpen {
     pub container_position: UBlockPos,
     /// The unique ID of the entity container that was opened. It is only used if the ContainerType
     /// is one that points to an entity, for example a horse.
-    pub container_entity_unique_id: VarI64,
+    pub container_entity_unique_id: v64,
 }

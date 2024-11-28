@@ -1,4 +1,4 @@
-use glam::IVec3;
+use crate::types::IVec3;
 use num_traits::{FromPrimitive, ToPrimitive};
 
 use crate::types::world::{Dimension, SubChunkEntry};

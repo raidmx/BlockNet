@@ -1,4 +1,4 @@
-use binary::VarI32;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 
 /// Sent from the server to the client to change one of the properties of a mob client-side.
@@ -13,7 +13,7 @@ pub struct ChangeMobProperty {
     /// Set if the property value is a string. If the type is not a string, this field is ignored.
     pub string_value: String,
     /// Set if the property value is an int. If the type is not an int, this field is ignored.
-    pub int_value: VarI32,
+    pub int_value: v32,
     /// Set if the property value is a float. If the type is not a float, this field is ignored.
     pub float_value: f32,
 }

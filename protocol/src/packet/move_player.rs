@@ -1,5 +1,5 @@
-use glam::Vec3;
-use binary::VarU64;
+use crate::types::Vec3;
+use binary::w64;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by players to send their movement to the server, and by the server to update the movement
@@ -9,7 +9,7 @@ use derive::{Decode, Encode, Packet};
 pub struct MovePlayer {
     /// The runtime ID of the player. The runtime ID is unique for each world session, and entities
     /// are generally identified in packets using this runtime ID.
-    pub entity_runtime_id: VarU64,
+    pub entity_runtime_id: w64,
     /// The position to spawn the player on. If the player is on a distance that the viewer cannot
     /// see it, the player will still show up if the viewer moves closer.
     pub position: Vec3,
@@ -26,7 +26,7 @@ pub struct MovePlayer {
     pub mode: MoveMode,
     /// The server tick at which the packet was sent. It is used in relation to
     /// CorrectPlayerMovePrediction.
-    pub tick: VarU64,
+    pub tick: w64,
 }
 
 #[derive(Debug, Clone, PartialEq, Encode, Decode)]
@@ -55,7 +55,7 @@ pub struct MoveModeNotTeleport {
     pub on_ground: bool,
     /// The runtime ID of the entity that the player might currently be riding. If not riding, this
     /// should be left zero.
-    pub ridden_entity_runtime_id: VarU64,
+    pub ridden_entity_runtime_id: w64,
 }
 
 #[derive(Debug, Clone, PartialEq, Encode, Decode)]
@@ -65,7 +65,7 @@ pub struct MoveModeTeleport {
     pub on_ground: bool,
     /// The runtime ID of the entity that the player might currently be riding. If not riding, this
     /// should be left zero.
-    pub ridden_entity_runtime_id: VarU64,
+    pub ridden_entity_runtime_id: w64,
     /// Specifies the cause of the teleportation.
     pub teleport_cause: TeleportCause,
     /// The entity type that caused the teleportation, for example, an ender pearl.

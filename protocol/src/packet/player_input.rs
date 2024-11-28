@@ -1,4 +1,4 @@
-use glam::Vec2;
+use crate::types::Vec2;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the client to the server when the player is moving but the server does not allow it to

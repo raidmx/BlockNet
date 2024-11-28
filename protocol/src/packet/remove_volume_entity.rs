@@ -7,6 +7,6 @@ pub struct RemoveVolumeEntity {
     /// The entity runtime ID of the volume entity that was removed.
     pub entity_runtime_id: u64,
     /// The dimension that the volume entity was in.
-    #[encoding(type = VarI32)]
+    #[encoding(type = v32)]
     pub dimension: Dimension,
 }

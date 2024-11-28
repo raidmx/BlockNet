@@ -1,4 +1,4 @@
-use binary::{Decode, Encode, Reader, RefString, VarI32, VarI64, VarU32, Writer};
+use binary::{Decode, Encode, Reader, RefString, v32, v64, w32, Writer};
 
 /// Encoding is the trait implemented for the various types of NBT Encoding supported 
 /// by the NBT Library
@@ -25,27 +25,27 @@ pub struct LittleEndian;
 
 impl Encoding for NetworkLittleEndian {
     fn read_int(r: &mut Reader) -> Option<i32> {
-        Some(VarI32::decode(r)?.get())
+        Some(v32::decode(r)?.get())
     }
 
     fn write_int(w: &mut Writer, val: i32) {
-        VarI32::new(val).encode(w);
+        v32::new(val).encode(w);
     }
 
     fn read_long(r: &mut Reader) -> Option<i64> {
-        Some(VarI64::decode(r)?.get())
+        Some(v64::decode(r)?.get())
     }
 
     fn write_long(w: &mut Writer, val: i64) {
-        VarI64::new(val).encode(w);
+        v64::new(val).encode(w);
     }
 
     fn read_str<'a>(r: &mut Reader<'a>) -> Option<&'a str> {
-        Some(RefString::<'a, VarU32>::decode(r)?.get())
+        Some(RefString::<'a, w32>::decode(r)?.get())
     }
 
     fn write_str(w: &mut Writer, val: &str) {
-        RefString::<VarU32>::new(val).encode(w);
+        RefString::<w32>::new(val).encode(w);
     }
 }
 

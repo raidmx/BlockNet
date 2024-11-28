@@ -1,8 +1,9 @@
-use derive::{Decode, Encode, Packet};
+use binary::{Decode, Encode, Reader, Writer};
+use derive::Packet;
 
 /// Sent by the server to damage the armour of a player. It is a very efficient packet, but
 /// generally it's much easier to just send a slot update for the damaged armour.
-#[derive(Debug, Clone, Encode, Decode, Packet)]
+#[derive(Debug, Clone, Packet)]
 pub struct PlayerArmourDamage {
     /// A bitset of 4 bits that indicate which pieces of armour need to have damage dealt to them.
     /// The first bit, when toggled, is for a helmet, the second for the chestplate, the third for
@@ -18,31 +19,45 @@ pub struct PlayerArmourDamage {
     pub boots_damage: i32,
 }
 
-impl PacketType for PlayerArmourDamage {
-    fn write(&self, writer: &mut Writer) {
-        writer.u8(self.bitset);
+impl Encode for PlayerArmourDamage {
+    fn encode(&self, w: &mut Writer) {
+        self.bitset.encode(w);
+
         if self.bitset & 0x01 != 0 {
-            writer.i32(self.helmet_damage);
+            self.helmet_damage.encode(w);
         }
         if self.bitset & 0x02 != 0 {
-            writer.i32(self.chestplate_damage);
+            self.chestplate_damage.encode(w);
         }
         if self.bitset & 0x04 != 0 {
-            writer.i32(self.leggings_damage);
+            self.leggings_damage.encode(w);
         }
         if self.bitset & 0x08 != 0 {
-            writer.i32(self.boots_damage);
+            self.boots_damage.encode(w);
         }
     }
+}
 
-    fn read(reader: &mut Reader) -> Self {
-        let bitset = reader.u8();
-        Self {
-            bitset,
-            helmet_damage: if bitset & 0x01 != 0 { reader.i32() } else { 0 },
-            chestplate_damage: if bitset & 0x01 != 0 { reader.i32() } else { 0 },
-            leggings_damage: if bitset & 0x01 != 0 { reader.i32() } else { 0 },
-            boots_damage: if bitset & 0x01 != 0 { reader.i32() } else { 0 },
+impl Decode<'_> for PlayerArmourDamage {
+    fn decode(r: &mut Reader<'_>) -> Option<Self> {
+        let mut pk = Self {
+            bitset: u8::decode(r)?,
+            ..Default::default()
+        };
+
+        if pk.bitset & 0x01 != 0 {
+            pk.helmet_damage = i32::decode(r)?;
         }
+        if pk.bitset & 0x02 != 0 {
+            pk.chestplate_damage = i32::decode(r)?;
+        }
+        if pk.bitset & 0x03 != 0 {
+            pk.leggings_damage = i32::decode(r)?;
+        }
+        if pk.bitset & 0x04 != 0 {
+            pk.boots_damage = i32::decode(r)?;
+        }
+
+        Some(pk)
     }
 }

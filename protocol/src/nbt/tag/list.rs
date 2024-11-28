@@ -2,6 +2,7 @@ use std::{
     fmt::Debug,
     ops::{Deref, DerefMut},
 };
+
 use crate::nbt::{Tag, TagId};
 
 /// List represents a collection of Tag objects. It is a homogenous collection of Tag objects, in other

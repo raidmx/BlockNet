@@ -1,9 +1,9 @@
-use binary::{VarI32, VarI64};
+use binary::{v32, v64};
 use derive::{Decode, Encode};
 
 #[repr(i32)]
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum EventType {
     AchievementAwarded(AchievementAwarded),
     EntityInteract(EntityInteract),
@@ -85,8 +85,8 @@ pub struct ExtractHoney {
 pub struct RaidUpdate {
     /// It is unclear what this field does.
     pub use_player_id: u8,
-    pub current_raid_wave: VarI32,
-    pub total_raid_waves: VarI32,
+    pub current_raid_wave: v32,
+    pub total_raid_waves: v32,
     pub won_raid: bool,
 }
 
@@ -102,9 +102,9 @@ pub struct EntityDefinitionTrigger {
 pub struct EntityInteract {
     /// It is unclear what this field does.
     pub use_player_id: u8,
-    pub interaction_type: VarI32,
-    pub interaction_entity_type: VarI32,
-    pub entity_variant: VarI32,
+    pub interaction_type: v32,
+    pub interaction_entity_type: v32,
+    pub entity_variant: v32,
     pub entity_colour: u8,
 }
 
@@ -112,49 +112,49 @@ pub struct EntityInteract {
 pub struct CauldronInteract {
     /// It is unclear what this field does.
     pub use_player_id: u8,
-    pub block_interaction_type: VarI32,
-    pub item_id: VarI32,
+    pub block_interaction_type: v32,
+    pub item_id: v32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct CauldronUsed {
     /// It is unclear what this field does.
     pub use_player_id: u8,
-    pub potion_id: VarI32,
-    pub colour: VarI32,
-    pub fill_level: VarI32,
+    pub potion_id: v32,
+    pub colour: v32,
+    pub fill_level: v32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct ComposterInteract {
     /// It is unclear what this field does.
     pub use_player_id: u8,
-    pub block_interaction_type: VarI32,
-    pub item_id: VarI32,
+    pub block_interaction_type: v32,
+    pub item_id: v32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct BossKilled {
     /// It is unclear what this field does.
     pub use_player_id: u8,
-    pub boss_entity_unique_id: VarI64,
-    pub player_party_size: VarI32,
-    pub interaction_entity_type: VarI32,
+    pub boss_entity_unique_id: v64,
+    pub player_party_size: v32,
+    pub interaction_entity_type: v32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct AchievementAwarded {
     /// It is unclear what this field does.
     pub use_player_id: u8,
-    pub achievement_id: VarI32,
+    pub achievement_id: v32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct AgentCommand {
     /// It is unclear what this field does.
     pub use_player_id: u8,
-    pub agent_result: VarI32,
-    pub data_value: VarI32,
+    pub agent_result: v32,
+    pub data_value: v32,
     pub command: String,
     pub data_key: String,
     pub output: String,
@@ -170,8 +170,8 @@ pub struct AgentCreated {
 pub struct SlashCommandExecuted {
     /// It is unclear what this field does.
     pub use_player_id: u8,
-    pub success_count: VarI32,
-    pub message_count: VarI32,
+    pub success_count: v32,
+    pub message_count: v32,
     pub command_name: String,
     pub output_messages: String,
 }
@@ -180,11 +180,11 @@ pub struct SlashCommandExecuted {
 pub struct MobKilled {
     /// It is unclear what this field does.
     pub use_player_id: u8,
-    pub killer_entity_unique_id: VarI64,
-    pub victim_entity_unique_id: VarI64,
-    pub killer_entity_type: VarI32,
-    pub entity_damage_cause: VarI32,
-    pub villager_trade_tier: VarI32,
+    pub killer_entity_unique_id: v64,
+    pub victim_entity_unique_id: v64,
+    pub killer_entity_type: v32,
+    pub entity_damage_cause: v32,
+    pub villager_trade_tier: v32,
     pub villager_display_name: String,
 }
 
@@ -210,7 +210,7 @@ pub struct MovementCorrected {
     pub cheating_score: f32,
     pub score_threshold: f32,
     pub distance_threshold: f32,
-    pub duration_threshold: VarI32,
+    pub duration_threshold: v32,
 }
 
 /// This event is self-explanatory.
@@ -218,7 +218,7 @@ pub struct MovementCorrected {
 pub struct BellUsed {
     /// It is unclear what this field does.
     pub use_player_id: u8,
-    pub item_id: VarI32,
+    pub item_id: v32,
 }
 
 /// Sent when a fish is bucketed.
@@ -226,9 +226,9 @@ pub struct BellUsed {
 pub struct FishBucketed {
     /// It is unclear what this field does.
     pub use_player_id: u8,
-    pub pattern: VarI32,
-    pub preset: VarI32,
-    pub bucketed_entity_type: VarI32,
+    pub pattern: v32,
+    pub preset: v32,
+    pub bucketed_entity_type: v32,
     pub release: bool,
 }
 
@@ -237,8 +237,8 @@ pub struct FishBucketed {
 pub struct MobBorn {
     /// It is unclear what this field does.
     pub use_player_id: u8,
-    pub entity_type: VarI32,
-    pub variant: VarI32,
+    pub entity_type: v32,
+    pub variant: v32,
     pub colour: u8,
 }
 
@@ -254,19 +254,19 @@ pub struct PetDied {
     /// It is unclear what this field does.
     pub use_player_id: u8,
     pub killed_by_owner: bool,
-    pub killer_entity_unique_id: VarI64,
-    pub pet_entity_unique_id: VarI64,
-    pub entity_damage_cause: VarI32,
-    pub pet_entity_type: VarI32,
+    pub killer_entity_unique_id: v64,
+    pub pet_entity_unique_id: v64,
+    pub entity_damage_cause: v32,
+    pub pet_entity_type: v32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct PlayerDied {
     /// It is unclear what this field does.
     pub use_player_id: u8,
-    pub attacker_entity_id: VarI32,
-    pub attacker_variant: VarI32,
-    pub entity_damage_cause: VarI32,
+    pub attacker_entity_id: v32,
+    pub attacker_variant: v32,
+    pub entity_damage_cause: v32,
     pub in_raid: bool,
 }
 
@@ -274,15 +274,15 @@ pub struct PlayerDied {
 pub struct PortalBuilt {
     /// It is unclear what this field does.
     pub use_player_id: u8,
-    pub dimension_id: VarI32,
+    pub dimension_id: v32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct PortalUsed {
     /// It is unclear what this field does.
     pub use_player_id: u8,
-    pub from_dimension_id: VarI32,
-    pub to_dimension_id: VarI32,
+    pub from_dimension_id: v32,
+    pub to_dimension_id: v32,
 }
 
 /// This event is self-explanatory.
@@ -302,9 +302,9 @@ pub struct CarefulRestoration {
 pub struct PatternRemoved {
     /// It is unclear what this field does.
     pub use_player_id: u8,
-    pub item_id: VarI32,
-    pub aux_value: VarI32,
-    pub patterns_size: VarI32,
-    pub pattern_index: VarI32,
-    pub pattern_colour: VarI32,
+    pub item_id: v32,
+    pub aux_value: v32,
+    pub patterns_size: v32,
+    pub pattern_index: v32,
+    pub pattern_colour: v32,
 }

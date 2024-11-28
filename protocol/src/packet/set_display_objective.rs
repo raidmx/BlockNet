@@ -1,4 +1,4 @@
-use binary::VarI32;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to display an object as a scoreboard to the player. Once sent, it should be
@@ -16,5 +16,5 @@ pub struct SetDisplayObjective {
     /// This can be any kind of string and does not show up client-side.
     pub criteria_name: String,
     /// The order in which entries on the scoreboard should be sorted.
-    pub sort_order: VarI32,
+    pub sort_order: v32,
 }

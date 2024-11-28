@@ -10,7 +10,7 @@ use crate::types::item::ItemInstance;
 pub struct InventoryContent<'a> {
     /// One of the windows that the client currently has opened, or a consistent one such as the
     /// main inventory.
-    #[encoding(type = VarU32)]
+    #[encoding(type = w32)]
     pub window: Window,
     /// The new content of the inventory. The length of this list must be equal to the full size of
     /// the inventory window that was updated.

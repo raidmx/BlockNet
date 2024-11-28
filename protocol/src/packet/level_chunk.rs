@@ -1,11 +1,12 @@
 use bytes::Bytes;
-use glam::IVec2;
-use derive::{Decode, Encode, Packet};
+use binary::{w32, Decode, Encode, Reader, Writer};
+use crate::types::{IVec2, SubChunkRequestMode};
+use derive::Packet;
 
 /// Sent by the server to provide the client with a chunk of a world data (16xYx16 blocks).
 /// Typically, a certain amount of chunks is sent to the client before sending it the spawn
 /// PlayStatus packet, so that the client spawns in a loaded world.
-#[derive(Debug, Clone, Encode, Decode, Packet)]
+#[derive(Debug, Clone, Default, Packet)]
 pub struct LevelChunk {
     /// The X and Z coordinates of the chunk sent. You can convert a block coordinate to a chunk
     /// coordinate by right-shifting it four bits.
@@ -18,7 +19,7 @@ pub struct LevelChunk {
     pub highest_sub_chunk: u16,
     /// The amount of sub-chunks that are part of the chunk sent. Depending on if the cache is
     /// enabled, a list of blob hashes will be sent, or, if disabled, the sub-chunk data.
-    pub sub_chunk_count: u32,
+    pub sub_chunk_count: w32,
     /// Specifies if the client blob cache should be enabled. This system is based on hashes of
     /// blobs which are consistent and saved by the client in combination with that blob, so that
     /// the server does not have the same chunk multiple times. If the client does not yet have a
@@ -37,56 +38,58 @@ pub struct LevelChunk {
     pub raw_payload: Bytes,
 }
 
-impl PacketType for LevelChunk {
-    fn write(&self, writer: &mut Writer) {
-        writer.var_i32(self.position.x);
-        writer.var_i32(self.position.y);
+impl Encode for LevelChunk {
+    fn encode(&self, w: &mut Writer) {
+        self.position.encode(w);
+
         match self.sub_chunk_request_mode {
             SubChunkRequestMode::Legacy => {
-                writer.var_u32(self.sub_chunk_count);
+                self.sub_chunk_count.encode(w);
             }
             SubChunkRequestMode::Limitless => {
-                writer.var_u32(u32::MAX);
+                w32::new(u32::MAX).encode(w);
             }
             SubChunkRequestMode::Limited => {
-                writer.var_u32(u32::MAX - 1);
-                writer.u16(self.highest_sub_chunk);
+                w32::new(u32::MAX - 1).encode(w);
+                self.highest_sub_chunk.encode(w);
             }
         }
-        writer.bool(self.cache_enabled);
+        self.cache_enabled.encode(w);
+
         if self.cache_enabled {
-            writer.var_u32(self.blob_hashes.len() as u32);
-            self.blob_hashes.iter().for_each(|hash| writer.u64(*hash));
+            self.blob_hashes.encode(w);
         }
-        writer.byte_slice(&self.raw_payload);
+
+        self.raw_payload.encode(w);
     }
+}
 
-    fn read(reader: &mut Reader) -> Self {
-        let mut packet = Self {
-            position: IVec2::new(reader.var_i32(), reader.var_i32()),
-            sub_chunk_request_mode: SubChunkRequestMode::Legacy,
-            highest_sub_chunk: 0,
-            sub_chunk_count: 0,
-            cache_enabled: false,
-            blob_hashes: Vec::new(),
-            raw_payload: Bytes::default(),
+impl Decode<'_> for LevelChunk {
+    fn decode(r: &mut Reader<'_>) -> Option<Self> {
+        let mut pk = Self {
+            position: IVec2::decode(r)?,
+            ..Default::default()
         };
-        let sub_chunk_count = reader.var_u32();
-        if sub_chunk_count == u32::MAX {
-            packet.sub_chunk_request_mode = SubChunkRequestMode::Limitless;
-        } else if sub_chunk_count == u32::MAX - 1 {
-            packet.sub_chunk_request_mode = SubChunkRequestMode::Limited;
-            packet.highest_sub_chunk = reader.u16();
-        } else {
-            packet.sub_chunk_count = sub_chunk_count;
-        }
-        packet.cache_enabled = reader.bool();
-        if packet.cache_enabled {
-            let blob_hashes_len = reader.var_u32() as usize;
-            packet.blob_hashes = (0..blob_hashes_len).map(|_| reader.u64()).collect();
-        }
-        packet.raw_payload = reader.byte_slice();
 
-        packet
+        let sub_chunk_count = w32::decode(r)?.get();
+
+        if sub_chunk_count == u32::MAX {
+            pk.sub_chunk_request_mode = SubChunkRequestMode::Limitless;
+        } else if sub_chunk_count == u32::MAX - 1 {
+            pk.sub_chunk_request_mode = SubChunkRequestMode::Limited;
+            pk.highest_sub_chunk = u16::decode(r)?;
+        } else {
+            pk.sub_chunk_count = sub_chunk_count.into();
+        }
+
+        pk.cache_enabled = bool::decode(r)?;
+
+        if pk.cache_enabled {
+            pk.blob_hashes = Vec::decode(r)?;
+        }
+
+        pk.raw_payload = Bytes::decode(r)?;
+
+        Some(pk)
     }
 }

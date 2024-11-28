@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use num_derive::{FromPrimitive, ToPrimitive};
-use binary::{VarI32, VarU32};
+use binary::{v32, w32};
 use derive::{Decode, Encode};
 use crate::nbt::{NetworkLittleEndian, NBT};
 use crate::types::{ItemDescriptorCount, ItemStack};
@@ -54,7 +54,7 @@ pub enum FilterCause {
 
 #[derive(Debug, Clone, Default, Encode, Decode)]
 pub struct ItemStackRequestEntry<'a> {
-    pub request_id: VarI32,
+    pub request_id: v32,
     pub actions: Vec<StackRequestAction<'a>>,
     pub filter_strings: Vec<&'a str>,
     pub filter_cause: FilterCause,
@@ -87,10 +87,10 @@ pub struct EnchantmentInstance {
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct EnchantmentOption {
-    pub cost: VarU32,
+    pub cost: w32,
     pub enchantments: ItemEnchantments,
     pub name: String,
-    pub recipe_network_id: VarU32,
+    pub recipe_network_id: w32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
@@ -103,7 +103,7 @@ pub struct ItemEntry<'a> {
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct ItemStackResponseEntry {
     pub status: ItemStackResponseStatus,
-    pub request_id: VarI32,
+    pub request_id: v32,
     pub container_info: Vec<StackResponseContainerInfo>,
 }
 
@@ -111,7 +111,7 @@ pub struct ItemStackResponseEntry {
 pub struct StackRequestSlotInfo {
     pub container_id: u8,
     pub slot: u8,
-    pub stack_network_id: VarI32,
+    pub stack_network_id: v32,
 }
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct DestroyStackRequestAction {
@@ -135,15 +135,15 @@ pub struct AutoCraftRecipeStackRequestAction {
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct BeaconPaymentStackRequestAction {
-    pub primary_effect: VarI32,
-    pub secondary_effect: VarI32,
+    pub primary_effect: v32,
+    pub secondary_effect: v32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct MineBlockStackRequestAction {
-    pub hotbar_slot: VarI32,
-    pub predicted_durability: VarI32,
-    pub stack_network_id: VarI32,
+    pub hotbar_slot: v32,
+    pub predicted_durability: v32,
+    pub stack_network_id: v32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
@@ -174,13 +174,13 @@ pub struct ConsumeStackRequestAction {
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct CraftCreativeStackRequestAction {
-    pub creative_item_network_id: VarU32,
+    pub creative_item_network_id: w32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct CraftGrindstoneRecipeStackRequestAction {
-    pub recipe_network_id: VarU32,
-    pub cost: VarI32,
+    pub recipe_network_id: w32,
+    pub cost: v32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
@@ -190,13 +190,13 @@ pub struct CraftLoomRecipeStackRequestAction {
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct CraftRecipeOptionalStackRequestAction {
-    pub recipe_network_id: VarU32,
+    pub recipe_network_id: w32,
     pub filter_string_index: i32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct CraftRecipeStackRequestAction {
-    pub recipe_network_id: VarU32,
+    pub recipe_network_id: w32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
@@ -235,7 +235,7 @@ pub struct StackResponseSlotInfo {
     pub slot: u8,
     pub hotbar_slot: u8,
     pub count: u8,
-    pub stack_network_id: VarI32,
+    pub stack_network_id: v32,
     pub custom_name: String,
-    pub durability_correction: VarI32,
+    pub durability_correction: v32,
 }

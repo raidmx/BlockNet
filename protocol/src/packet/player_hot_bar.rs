@@ -1,4 +1,4 @@
-use binary::VarU32;
+use binary::w32;
 use derive::{Decode, Encode, Packet};
 
 use crate::types::inventory::Window;
@@ -10,7 +10,7 @@ use crate::types::inventory::Window;
 #[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct PlayerHotBar {
     /// Before 1.2, this was the hot bar slot that is being linked to the inventory slot.
-    pub selected_hotbar_slot: VarU32,
+    pub selected_hotbar_slot: w32,
     /// The window that the hot bar slot is in.
     pub window: Window,
     /// The exact purpose of this field is unknown.

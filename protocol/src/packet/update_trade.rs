@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use binary::{VarI32, VarI64};
+use binary::{v32, v64};
 use derive::{Decode, Encode, Packet};
 use crate::types::inventory::Window;
 
@@ -13,17 +13,17 @@ pub struct UpdateTrade {
     /// always filled out with fifteen.
     pub window_type: u8,
     /// The amount of trading options that the villager has.
-    pub size: VarI32,
+    pub size: v32,
     /// The tier of the villager that the player is trading with. The tier starts at zero with the
     /// first two offers being available, after which two additional offers are unlocked each time
     /// the tier becomes one higher.
-    pub trade_tier: VarI32,
+    pub trade_tier: v32,
     /// The unique ID of the villager entity that the player is trading with. The `trade_tier` sent
     /// above applies to this villager.
-    pub villager_unique_id: VarI64,
+    pub villager_unique_id: v64,
     /// The unique ID of the entity (usually a player) for which the trades are updated. The updated
     /// trades may apply only to this entity.
-    pub entity_unique_id: VarI64,
+    pub entity_unique_id: v64,
     /// The name displayed at the top of the trading UI. It is usually used to represent the
     /// profession of the villager in the UI.
     pub display_name: String,

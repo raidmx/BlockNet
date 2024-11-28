@@ -1,6 +1,6 @@
-use glam::Vec3;
+use crate::types::Vec3;
 use num_derive::{FromPrimitive, ToPrimitive};
-use binary::VarU32;
+use binary::w32;
 use derive::{Decode, Encode};
 
 #[derive(Debug, Copy, Clone, FromPrimitive, ToPrimitive)]
@@ -24,7 +24,7 @@ impl ClientInputLock {
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct UpdateClientInputLocks {
     /// An encoded bitset of all locks that are currently active.
-    pub locks: VarU32,
+    pub locks: w32,
     /// The server's position of the client at the time the packet was sent. It is unclear what the
     /// exact purpose of this field is.
     pub position: Vec3,

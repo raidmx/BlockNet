@@ -1,5 +1,5 @@
-use glam::Vec3;
-use binary::{VarI64, VarU64};
+use crate::types::Vec3;
+use binary::{v64, w64};
 use derive::{Decode, Encode, Packet};
 use crate::types::{EntityMetadata, ItemInstance};
 
@@ -10,10 +10,10 @@ pub struct AddItemActor<'a> {
     /// The unique ID of the entity. The unique ID is a value that remains consistent across
     /// different sessions of the same world, but most servers simply fill the runtime ID of the
     /// entity out for this field.
-    pub entity_unique_id: VarI64,
+    pub entity_unique_id: v64,
     /// The runtime ID of the entity. The runtime ID is unique for each world session, and entities
     /// are generally identified in packets using this runtime ID.
-    pub entity_runtime_id: VarU64,
+    pub entity_runtime_id: w64,
     /// The item that is spawned. It must have a valid ID for it to show up client-side. If it is
     /// not a valid item, the client will crash when coming near.
     pub item: ItemInstance<'a>,

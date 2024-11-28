@@ -1,6 +1,6 @@
 use bytes::BytesMut;
 use num_derive::{FromPrimitive, ToPrimitive};
-use binary::{Decode, Encode, Reader, VarI32, VarU32, Writer};
+use binary::{Decode, Encode, Reader, v32, w32, Writer};
 use derive::{Decode, Encode};
 use crate::nbt::{LittleEndian, Tag, NBT};
 use crate::types::SliceU32;
@@ -40,7 +40,7 @@ pub enum UseItemOnEntityAction {
 
 #[derive(Debug, Clone, Default)]
 pub struct ItemInstance<'a> {
-    pub stack_network_id: VarI32,
+    pub stack_network_id: v32,
     pub stack: ItemStack<'a>,
 }
 
@@ -92,7 +92,7 @@ impl<'a> Encode for ItemInstance<'a> {
 
 impl<'a> Decode<'a> for ItemInstance<'a> {
     fn decode(r: &mut Reader<'a>) -> Option<Self> {
-        let network_id = VarI32::decode(r)?;
+        let network_id = v32::decode(r)?;
 
         if *network_id == 0 {
             // The item was air, so there's no more data to follow. Return immediately.
@@ -100,14 +100,14 @@ impl<'a> Decode<'a> for ItemInstance<'a> {
         }
 
         let count = u16::decode(r)?;
-        let metadata_value = VarU32::decode(r)?;
-        let mut stack_network_id = VarI32::new(0);
+        let metadata_value = w32::decode(r)?;
+        let mut stack_network_id = v32::new(0);
 
         if bool::decode(r)? {
-            stack_network_id = VarI32::decode(r)?;
+            stack_network_id = v32::decode(r)?;
         }
 
-        let block_runtime_id = VarI32::decode(r)?;
+        let block_runtime_id = v32::decode(r)?;
 
         let extra_data = BytesMut::decode(r)?.freeze();
         let extra_reader = &mut &extra_data[..];
@@ -151,9 +151,9 @@ impl<'a> Decode<'a> for ItemInstance<'a> {
 
 #[derive(Debug, Clone, Default)]
 pub struct ItemStack<'a> {
-    pub network_id: VarI32,
-    pub metadata_value: VarU32,
-    pub block_runtime_id: VarI32,
+    pub network_id: v32,
+    pub metadata_value: w32,
+    pub block_runtime_id: v32,
     pub count: u16,
     pub nbt_data: NBT<'a, LittleEndian>,
     pub can_be_placed_on: SliceU32<&'a str>,
@@ -201,15 +201,15 @@ impl<'a> Encode for ItemStack<'a> {
 
 impl<'a> Decode<'a> for ItemStack<'a> {
     fn decode(r: &mut Reader<'a>) -> Option<Self> {
-        let network_id = VarI32::decode(r)?;
+        let network_id = v32::decode(r)?;
         if *network_id == 0 {
             // The item was air, so there's no more data to follow. Return immediately.
             return Some(Self::default());
         }
 
         let count = u16::decode(r)?;
-        let metadata_value = VarU32::decode(r)?;
-        let block_runtime_id = VarI32::decode(r)?;
+        let metadata_value = w32::decode(r)?;
+        let block_runtime_id = v32::decode(r)?;
 
         let extra_data = BytesMut::decode(r)?.freeze();
         let extra_reader = &mut &extra_data[..];

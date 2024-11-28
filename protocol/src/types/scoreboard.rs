@@ -1,5 +1,5 @@
 use num_derive::{FromPrimitive, ToPrimitive};
-use binary::{Decode, Encode, Reader, VarI64, Writer};
+use binary::{Decode, Encode, Reader, v64, Writer};
 use derive::{Decode, Encode};
 
 #[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
@@ -28,14 +28,14 @@ pub enum ScoreboardAction {
 pub enum ScoreboardIdentity<'a> {
     #[default]
     None,
-    Player(VarI64),
-    Entity(VarI64),
+    Player(v64),
+    Entity(v64),
     FakePlayer(&'a str),
 }
 
 #[derive(Debug, Clone)]
 pub struct ScoreboardEntry<'a> {
-    pub entry_id: VarI64,
+    pub entry_id: v64,
     pub objective_name: &'a str,
     pub score: i32,
     pub identity_type: ScoreboardIdentity<'a>,
@@ -53,7 +53,7 @@ impl<'a> ScoreboardEntry<'a> {
     }
 
     pub fn read(r: &mut &'a [u8], action: ScoreboardAction) -> Option<Self> {
-        let entry_id = VarI64::decode(r)?;
+        let entry_id = v64::decode(r)?;
         let objective_name = <&'a str>::decode(r)?;
         let score = i32::decode(r)?;
         let mut identity_type = ScoreboardIdentity::None;
@@ -80,8 +80,8 @@ pub enum ScoreboardIdentityAction {
 
 #[derive(Debug, Clone)]
 pub struct ScoreboardIdentityEntry {
-    pub entry_id: VarI64,
-    pub entity_unique_id: VarI64,
+    pub entry_id: v64,
+    pub entity_unique_id: v64,
 }
 
 impl ScoreboardIdentityEntry {
@@ -94,11 +94,11 @@ impl ScoreboardIdentityEntry {
     }
 
     pub fn read(r: &mut Reader, action: ScoreboardIdentityAction) -> Option<Self> {
-        let entry_id = VarI64::decode(r)?;
-        let mut entity_unique_id = VarI64::default();
+        let entry_id = v64::decode(r)?;
+        let mut entity_unique_id = v64::default();
 
         if let ScoreboardIdentityAction::Register = action {
-            entity_unique_id = VarI64::decode(r)?;
+            entity_unique_id = v64::decode(r)?;
         }
         Some(Self {
             entry_id,

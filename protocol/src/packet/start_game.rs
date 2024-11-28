@@ -1,6 +1,6 @@
-use glam::Vec3;
+use crate::types::Vec3;
 use uuid::Uuid;
-use binary::{VarI32, VarI64, VarU64};
+use binary::{v32, v64, w64};
 use derive::{Decode, Encode, Packet};
 use crate::nbt::{NetworkLittleEndian, NBT};
 use crate::types::education::EducationSharedResourceURI;
@@ -20,10 +20,10 @@ pub struct StartGame<'a> {
     /// The unique ID of the player. The unique ID is a value that remains consistent across
     /// different sessions of the same world, but most servers simply fill the runtime ID of the
     /// entity out for this field.
-    pub entity_unique_id: VarI64,
+    pub entity_unique_id: v64,
     /// The runtime ID of the player. The runtime ID is unique for each world session, and entities
     /// are generally identified in packets using this runtime ID.
-    pub entity_runtime_id: VarU64,
+    pub entity_runtime_id: w64,
     /// The game mode of the player. If set to Default, then the client will fall back to the game
     /// mode set in the world_game_mode field, which is the default game mode of the world.
     pub player_game_mode: GameType,
@@ -45,7 +45,7 @@ pub struct StartGame<'a> {
     /// custom biome name if any custom biomes are present through behaviour packs.
     pub user_defined_biome_name: String,
     /// The dimension that the player spawns in. Most mini-game servers use the Overworld dimension.
-    #[encoding(type = VarI32)]
+    #[encoding(type = v32)]
     pub dimension: Dimension,
     /// The generator used for the world. Most vanilla worlds use the Overworld generator.
     pub generator: Generator,
@@ -54,7 +54,7 @@ pub struct StartGame<'a> {
     pub world_game_mode: GameType,
     /// The difficulty of the world. It is not exactly clear why this is sent to the client, as the
     /// client does not need to know the difficulty of the world.
-    #[encoding(type = VarI32)]
+    #[encoding(type = v32)]
     pub difficulty: Difficulty,
     /// The block on which the world spawn of the world. This coordinate has no effect on the place
     /// that the client spawns, but it does have an effect on the direction that a compass points.
@@ -74,7 +74,7 @@ pub struct StartGame<'a> {
     pub exported_from_editor: bool,
     /// The time at which the day cycle was locked if the day cycle is disabled using the respective
     /// game rule. The client will maintain this time as long as the day cycle is disabled.
-    pub day_cycle_lock_time: VarI32,
+    pub day_cycle_lock_time: v32,
     /// Minecraft: Education Edition field that specifies what 'region' the world is in.
     pub education_edition_offer: EducationEditionRegion,
     /// Specifies if the world has Education Edition features enabled.
@@ -123,7 +123,7 @@ pub struct StartGame<'a> {
     pub start_with_map_enabled: bool,
     /// The permission level of the player. This is used to determine what actions the player can
     /// perform.
-    #[encoding(type = VarI32)]
+    #[encoding(type = v32)]
     pub player_permissions: PermissionLevel,
     /// The radius around the player in which chunks are ticked. Most servers set this value to a
     /// fixed number, as it does not necessarily affect anything client-side.
@@ -197,7 +197,7 @@ pub struct StartGame<'a> {
     /// The seed used to seed the random used to produce enchantments in the enchantment table. Note
     /// that the exact correct random implementation must be used to produce the correct results
     /// both client-side and server-side.
-    pub enchantment_seed: VarI32,
+    pub enchantment_seed: v32,
     /// A list of all custom blocks registered on the server.
     pub blocks: Vec<BlockEntry<'a>>,
     /// A list of all items with their legacy IDs which are available in the game. Failing to send
@@ -234,7 +234,7 @@ pub struct StartGame<'a> {
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum EditorWorldType {
     NotEditor,
     Project,
@@ -256,7 +256,7 @@ pub enum ChatRestrictionLevel {
 }
 
 #[derive(Debug, Copy, Clone, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum EducationEditionRegion {
     None,
     RestOfWorld,
@@ -264,7 +264,7 @@ pub enum EducationEditionRegion {
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum GamePublishSetting {
     None,
     InviteOnly,

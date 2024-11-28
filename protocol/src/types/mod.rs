@@ -24,7 +24,6 @@ pub mod sound_event;
 pub mod structure;
 pub mod world;
 
-use glam::IVec3;
 pub use ability::*;
 pub use actor_event::*;
 pub use attribute::*;
@@ -51,47 +50,152 @@ pub use sound_event::*;
 pub use structure::*;
 pub use world::*;
 
-use binary::{generate, Array, Decode, Encode, Reader, VarI32, VarU32, Writer};
+use binary::{Array, Decode, Encode, Reader, v32, w32, Writer};
 
 pub type SliceU8<T> = Array<u8, T>;
 pub type SliceU16<T> = Array<u16, T>;
 pub type SliceU32<T> = Array<u32, T>;
 
-generate!(BlockPos, <>, IVec3);
-generate!(UBlockPos, <>, IVec3);
+#[derive(Default, Debug, Clone, PartialEq)]
+pub struct BlockPos {
+    pub x: i32,
+    pub y: i32,
+    pub z: i32
+}
+
+#[derive(Default, Debug, Clone, PartialEq)]
+pub struct UBlockPos {
+    pub x: i32,
+    pub y: i32,
+    pub z: i32
+}
+
+#[derive(Default, Debug, Clone, PartialEq)]
+pub struct IVec2 {
+    pub x: i32,
+    pub y: i32
+}
+
+#[derive(Default, Debug, Clone, PartialEq)]
+pub struct Vec2 {
+    pub x: f32,
+    pub y: f32,
+}
+
+#[derive(Default, Debug, Clone, PartialEq)]
+pub struct Vec3 {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32
+}
+
+#[derive(Default, Debug, Clone, PartialEq)]
+pub struct Rotation {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32
+}
 
 impl Encode for BlockPos {
     fn encode(&self, w: &mut Writer) {
-        VarI32::new(self.x).encode(w);
-        VarI32::new(self.y).encode(w);
-        VarI32::new(self.z).encode(w);
+        v32::new(self.x).encode(w);
+        v32::new(self.y).encode(w);
+        v32::new(self.z).encode(w);
     }
 }
 
 impl Decode<'_> for BlockPos {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
-        Some(IVec3 {
-            x: VarI32::decode(r)?.get(),
-            y: VarI32::decode(r)?.get(),
-            z: VarI32::decode(r)?.get()
+        Some(Self {
+            x: v32::decode(r)?.get(),
+            y: v32::decode(r)?.get(),
+            z: v32::decode(r)?.get()
         }.into())
     }
 }
 
 impl Encode for UBlockPos {
     fn encode(&self, w: &mut Writer) {
-        VarI32::new(self.x).encode(w);
-        VarU32::new(self.y as u32).encode(w);
-        VarI32::new(self.z).encode(w);
+        v32::new(self.x).encode(w);
+        w32::new(self.y as u32).encode(w);
+        v32::new(self.z).encode(w);
     }
 }
 
 impl Decode<'_> for UBlockPos {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
-        Some(IVec3 {
-            x: VarI32::decode(r)?.get(),
-            y: VarU32::decode(r)?.get() as i32,
-            z: VarI32::decode(r)?.get()
+        Some(Self {
+            x: v32::decode(r)?.get(),
+            y: w32::decode(r)?.get() as i32,
+            z: v32::decode(r)?.get()
         }.into())
+    }
+}
+
+impl Encode for IVec2 {
+    fn encode(&self, w: &mut Writer) {
+        self.x.encode(w);
+        self.y.encode(w);
+    }
+}
+
+impl Decode<'_> for IVec2 {
+    fn decode(r: &mut Reader<'_>) -> Option<Self> {
+        Some(Self {
+            x: i32::decode(r)?,
+            y: i32::decode(r)?
+        })
+    }
+}
+
+impl Encode for Vec2 {
+    fn encode(&self, w: &mut Writer) {
+        self.x.encode(w);
+        self.y.encode(w);
+    }
+}
+
+impl Decode<'_> for Vec2 {
+    fn decode(r: &mut Reader<'_>) -> Option<Self> {
+        Some(Self {
+            x: f32::decode(r)?,
+            y: f32::decode(r)?
+        })
+    }
+}
+
+impl Encode for Vec3 {
+    fn encode(&self, w: &mut Writer) {
+        self.x.encode(w);
+        self.y.encode(w);
+        self.z.encode(w);
+    }
+}
+
+impl Decode<'_> for Vec3 {
+    fn decode(r: &mut Reader<'_>) -> Option<Self> {
+        Some(Self {
+            x: f32::decode(r)?,
+            y: f32::decode(r)?,
+            z: f32::decode(r)?
+        })
+    }
+}
+
+impl Encode for Rotation {
+    fn encode(&self, w: &mut Writer) {
+        ((self.x / (360.0 / 256.0)) as u8).encode(w);
+        ((self.y / (360.0 / 256.0)) as u8).encode(w);
+        ((self.z / (360.0 / 256.0)) as u8).encode(w);
+    }
+}
+
+impl Decode<'_> for Rotation {
+    fn decode(r: &mut Reader<'_>) -> Option<Self> {
+        Some(Self {
+            x: (u8::decode(r)? as f32) * (360.0 / 256.0),
+            y: (u8::decode(r)? as f32) * (360.0 / 256.0),
+            z: (u8::decode(r)? as f32) * (360.0 / 256.0)
+        })
     }
 }

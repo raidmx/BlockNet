@@ -1,18 +1,20 @@
 use bytes::Bytes;
 use num_derive::{FromPrimitive, ToPrimitive};
-use binary::{Decode, Encode, Reader, VarI32, VarI64, Writer};
+use binary::{Decode, Encode, Reader, v32, v64, Writer};
 use derive::{Decode, Encode};
 use crate::nbt::{NetworkLittleEndian, NBT};
 
+
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum SpawnType {
     Player,
     World,
 }
 
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, Default, FromPrimitive, ToPrimitive)]
 pub enum SubChunkRequestMode {
+    #[default]
     Legacy,
     Limitless,
     Limited,
@@ -30,7 +32,7 @@ pub enum SubChunkResult {
 }
 
 #[derive(Debug, Copy, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
-#[encoding(type = VarU32)]
+#[encoding(type = w32)]
 pub enum Difficulty {
     Peaceful,
     Easy,
@@ -39,7 +41,7 @@ pub enum Difficulty {
 }
 
 #[derive(Debug, Copy, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
-#[encoding(type = VarU32)]
+#[encoding(type = w32)]
 pub enum Dimension {
     Overworld,
     Nether,
@@ -56,7 +58,7 @@ pub enum HeightMapType {
 }
 
 #[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum GameType {
     Survival,
     Creative,
@@ -68,7 +70,7 @@ pub enum GameType {
 }
 
 #[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum Generator {
     Legacy,
     Overworld,
@@ -79,7 +81,7 @@ pub enum Generator {
 }
 
 #[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
-#[encoding(type = VarU32)]
+#[encoding(type = w32)]
 pub enum PermissionLevel {
     Visitor,
     Member,
@@ -96,7 +98,7 @@ pub enum EntityLinkType {
 }
 
 #[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
-#[encoding(type = VarU64)]
+#[encoding(type = w64)]
 pub enum UpdateBlockTransition {
     BlockToEntity,
     EntityToBlock,
@@ -117,14 +119,14 @@ pub struct GenerationFeature {
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct DimensionDefinition {
     name: String,
-    range: [VarI32; 2],
-    generator: VarI32,
+    range: [v32; 2],
+    generator: v32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct EntityLink {
-    pub ridden_entity_unique_id: VarI64,
-    pub rider_entity_unique_id: VarI64,
+    pub ridden_entity_unique_id: v64,
+    pub rider_entity_unique_id: v64,
     pub link_type: EntityLinkType,
     pub immediate: bool,
     pub rider_initiated: bool,

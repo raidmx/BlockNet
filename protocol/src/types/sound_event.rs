@@ -2,7 +2,7 @@ use num_derive::{FromPrimitive, ToPrimitive};
 use derive::{Decode, Encode};
 
 #[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
-#[encoding(type = VarU32)]
+#[encoding(type = w32)]
 pub enum SoundEvent {
     ItemUseOn,
     Hit,

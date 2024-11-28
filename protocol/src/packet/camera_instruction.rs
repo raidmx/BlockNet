@@ -1,4 +1,4 @@
-use glam::{Vec2, Vec3};
+use crate::types::{Vec2, Vec3};
 use derive::{Decode, Encode, Packet};
 use crate::types::RGB;
 

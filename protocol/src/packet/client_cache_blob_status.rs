@@ -1,4 +1,4 @@
-use binary::{Decode, Encode, Numeric, Reader, VarU32, Writer};
+use binary::{Decode, Encode, Numeric, Reader, w32, Writer};
 use derive::Packet;
 
 /// Part of the blob cache protocol. It is sent by the client to let the server know what blobs it
@@ -15,8 +15,8 @@ pub struct ClientCacheBlobStatus {
 
 impl Encode for ClientCacheBlobStatus {
     fn encode(&self, w: &mut Writer) {
-        VarU32::from_usize(self.miss_hashes.len()).encode(w);
-        VarU32::from_usize(self.hit_hashes.len()).encode(w);
+        w32::from_usize(self.miss_hashes.len()).encode(w);
+        w32::from_usize(self.hit_hashes.len()).encode(w);
 
         for item in self.miss_hashes.iter() {
             item.encode(w);
@@ -30,8 +30,8 @@ impl Encode for ClientCacheBlobStatus {
 
 impl Decode<'_> for ClientCacheBlobStatus {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
-        let miss_hashes_len = VarU32::decode(r)?.to_usize();
-        let hit_hashes_len = VarU32::decode(r)?.to_usize();
+        let miss_hashes_len = w32::decode(r)?.to_usize();
+        let hit_hashes_len = w32::decode(r)?.to_usize();
 
         Some (
             Self {

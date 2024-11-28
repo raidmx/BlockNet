@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use binary::VarI32;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to send a 'generic' level event to the client. This packet sends an NBT
@@ -8,7 +8,7 @@ use derive::{Decode, Encode, Packet};
 pub struct LevelEventGeneric {
     /// A unique identifier that identifies the event called. The data that follows has fields in
     /// the NBT depending on what event it is.
-    pub event_id: VarI32,
+    pub event_id: v32,
     /// A network little endian serialised object of event data, with fields that vary depending on
     /// the event ID. Unlike many other NBT structures, this data is not actually in a compound but
     /// just loosely floating NBT tags. To decode using the nbt package, you would need to append

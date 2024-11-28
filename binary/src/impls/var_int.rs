@@ -1,3 +1,5 @@
+#![allow(non_camel_case_types)]
+
 use bytes::{Buf, BufMut};
 use crate::{generate, impl_numeric_ordered, Decode, Encode, Reader, Variant, Writer, Prefix, Numeric};
 
@@ -5,6 +7,11 @@ generate!(VarI32, <>, i32);
 generate!(VarU32, <>, u32);
 generate!(VarI64, <>, i64);
 generate!(VarU64, <>, u64);
+
+pub type v32 = VarI32;
+pub type w32 = VarU32;
+pub type v64 = VarI64;
+pub type w64 = VarU64;
 
 impl Encode for VarI32 {
     fn encode(&self, w: &mut Writer) {

@@ -1,4 +1,4 @@
-use binary::VarU64;
+use binary::w64;
 use derive::{Decode, Encode, Packet};
 use crate::types::item::ItemInstance;
 
@@ -8,7 +8,7 @@ use crate::types::item::ItemInstance;
 pub struct MobArmourEquipment<'a> {
     /// The runtime ID of the entity. The runtime ID is unique for each world session, and entities
     /// are generally identified in packets using this runtime ID.
-    pub entity_runtime_id: VarU64,
+    pub entity_runtime_id: w64,
     /// The equipped helmet of the entity. Items that are not wearable on the head will not be
     /// rendered by the client. Unlike in Java Edition, blocks cannot be worn.
     pub helmet: ItemInstance<'a>,

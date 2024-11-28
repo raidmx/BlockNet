@@ -1,4 +1,4 @@
-use binary::{VarU32, VarU64};
+use binary::{w32, w64};
 use derive::{Decode, Encode, Packet};
 use crate::types::BlockPos;
 use crate::types::world::UpdateBlockTransition;
@@ -20,16 +20,16 @@ pub struct BlockChangeEntry {
     /// The position of the block being changed.
     pub block_pos: BlockPos,
     /// The runtime ID of the block.
-    pub block_runtime_id: VarU32,
+    pub block_runtime_id: w32,
     /// A combination of flags that specify the way the block is updated client-side.
-    pub flags: VarU32,
+    pub flags: w32,
     /// The unique ID of the falling block entity that the block transitions to or that the entity
     /// transitions from. Note that for both possible values for TransitionType, the
     /// `entity_unique_id` should point to the falling block entity involved.
-    pub synced_update_entity_unique_id: VarU64,
+    pub synced_update_entity_unique_id: w64,
     /// The type of the transition that happened. It is either `BlockToEntity`, when a block placed
     /// becomes a falling entity, or `EntityToBlock`, when a falling entity hits the ground and
     /// becomes a solid block again.
-    #[encoding(type = VarU32)]
+    #[encoding(type = w32)]
     pub synced_update_type: UpdateBlockTransition,
 }

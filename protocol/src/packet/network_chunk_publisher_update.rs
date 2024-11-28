@@ -1,5 +1,5 @@
-use glam::IVec2;
-use binary::VarU32;
+use crate::types::IVec2;
+use binary::w32;
 use derive::{Decode, Encode, Packet};
 
 use crate::types::{BlockPos, SliceU32};
@@ -20,7 +20,7 @@ pub struct NetworkChunkPublisherUpdate {
     /// Unlike the RequestChunkRadius and ChunkRadiusUpdated packets, this radius is in blocks
     /// rather than chunks, so the chunk radius needs to be multiplied by sixteen. (Or shifted to
     /// the left by four.)
-    pub radius: VarU32,
+    pub radius: w32,
     /// It is unclear what the purpose of this field is.
     pub saved_chunks: SliceU32<IVec2>,
 }

@@ -1,4 +1,4 @@
-use binary::VarI64;
+use binary::v64;
 use derive::{Decode, Encode, Packet};
 
 use crate::types::world::GameType;
@@ -12,5 +12,5 @@ pub struct UpdatePlayerGameType {
     pub game_type: GameType,
     /// The entity unique ID of the player that should have its game mode updated. If this packet is
     /// sent to other clients with the player unique ID of another player, nothing happens.
-    pub player_unique_id: VarI64,
+    pub player_unique_id: v64,
 }

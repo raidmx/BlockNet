@@ -1,4 +1,4 @@
-use binary::VarU64;
+use binary::w64;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to animate an entity client-side. It may be used to play a single animation,
@@ -23,5 +23,5 @@ pub struct AnimateEntity {
     /// It is not clear what the purpose of this field is.
     pub blend_out_time: f32,
     /// List of runtime IDs of entities that the animation should be applied to.
-    pub entity_runtime_ids: Vec<VarU64>,
+    pub entity_runtime_ids: Vec<w64>,
 }

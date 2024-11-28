@@ -1,4 +1,4 @@
-use binary::VarU32;
+use binary::w32;
 use derive::{Decode, Encode, Packet};
 use crate::types::UBlockPos;
 
@@ -23,11 +23,11 @@ pub struct UpdateBlock {
     /// The block position at which a block is updated.
     pub position: UBlockPos,
     /// The runtime ID of the new block that is placed at position.
-    pub new_block_runtime_id: VarU32,
+    pub new_block_runtime_id: w32,
     /// A combination of `BlockUpdate` flags that specify the way the block is updated client-side.
     /// Typically, sending only the `Network` flag is sufficient.
-    pub flags: VarU32,
+    pub flags: w32,
     /// The world layer on which the block is updated. For most blocks, this is the first layer, as
     /// that layer is the default layer to place blocks on.
-    pub layer: VarU32,
+    pub layer: w32,
 }

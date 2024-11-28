@@ -1,4 +1,4 @@
-use glam::Vec3;
+use crate::types::Vec3;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to spawn an outlined cube on client-side.

@@ -1,4 +1,4 @@
-use binary::VarI32;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to let the client know what entity type it was last hurt by. At this moment,
@@ -7,5 +7,5 @@ use derive::{Decode, Encode, Packet};
 #[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct SetLastHurtBy {
     /// The numerical type of the entity that the player was last hurt by.
-    pub entity_type: VarI32,
+    pub entity_type: v32,
 }

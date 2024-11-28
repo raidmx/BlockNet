@@ -1,5 +1,5 @@
-use glam::Vec3;
-use binary::VarI32;
+use crate::types::Vec3;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 use crate::types::level_event::LevelEventType;
 
@@ -14,5 +14,5 @@ pub struct LevelEvent {
     pub position: Vec3,
     /// An integer holding additional data of the event. The type of data held depends on the event
     /// type.
-    pub event_data: VarI32,
+    pub event_data: v32,
 }

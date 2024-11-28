@@ -1,6 +1,6 @@
 use bytes::Bytes;
-use glam::Vec3;
-use binary::VarI64;
+use crate::types::Vec3;
+use binary::v64;
 use derive::{Decode, Encode, Packet};
 
 use crate::types::world::Dimension;
@@ -17,7 +17,7 @@ pub struct SpawnParticleEffect {
     /// The unique ID of the entity that the spawned particle may be attached to. If this ID is not
     /// negative one, the Position below will be interpreted as relative to the position of the
     /// entity associated with this unique ID.
-    pub entity_unique_id: VarI64,
+    pub entity_unique_id: v64,
     /// The position that the particle should be spawned at. If the position is too far away from
     /// the player, it will not show up. If `entity_unique_id` is not negative one, the position
     /// will be relative to the position of the entity.

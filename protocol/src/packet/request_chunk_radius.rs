@@ -1,4 +1,4 @@
-use binary::VarI32;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the client to the server to update the server on the chunk view radius that it has set
@@ -7,7 +7,7 @@ use derive::{Decode, Encode, Packet};
 #[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct RequestChunkRadius {
     /// The requested chunk radius. This value is the value set in the settings of the player.
-    pub chunk_radius: VarI32,
+    pub chunk_radius: v32,
     /// The maximum chunk radius that the player wants to receive.
-    pub max_chunk_radius: VarI32,
+    pub max_chunk_radius: v32,
 }

@@ -1,5 +1,5 @@
-use glam::Vec3;
-use binary::VarI32;
+use crate::types::Vec3;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 
 use crate::types::sound_event::SoundEvent;
@@ -18,7 +18,7 @@ pub struct LevelSoundEvent {
     pub position: Vec3,
     /// A packed integer that some sound types use to provide extra data. An example of this is the
     /// note sound, which is composed of a pitch and an instrument type.
-    pub extra_data: VarI32,
+    pub extra_data: v32,
     /// The string entity type of the entity that emitted the sound, for example
     /// 'minecraft:skeleton'. Some sound types use this entity type for additional data.
     pub entity_type: String,

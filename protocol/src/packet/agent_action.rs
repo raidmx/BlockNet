@@ -2,7 +2,7 @@ use bytes::Bytes;
 use derive::{Decode, Encode, Packet};
 
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum AgentActionType {
     None,
     Attack,

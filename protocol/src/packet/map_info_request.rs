@@ -1,4 +1,4 @@
-use binary::VarI64;
+use binary::v64;
 use derive::{Decode, Encode, Packet};
 
 use crate::types::colour::RGBA;
@@ -9,7 +9,7 @@ use crate::types::colour::RGBA;
 pub struct MapInfoRequest {
     /// The unique identifier that represents the map that is requested over network. It remains
     /// consistent across sessions.
-    pub map_id: VarI64,
+    pub map_id: v64,
     /// A list of pixels sent from the client to notify the server about the pixels that it isn't
     /// aware of.
     pub client_pixels: Vec<PixelRequest>,

@@ -1,4 +1,4 @@
-use binary::VarI32;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the server. It sets the health of the player it is sent to. The SetHealth packet should
@@ -7,5 +7,5 @@ use derive::{Decode, Encode, Packet};
 #[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct SetHealth {
     /// The new health of the player.
-    pub health: VarI32,
+    pub health: v32,
 }

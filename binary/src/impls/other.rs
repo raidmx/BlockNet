@@ -1,5 +1,4 @@
 use bytes::{Buf, BufMut};
-use glam::{Vec2, Vec3};
 use uuid::Uuid;
 use crate::{Decode, Encode, Reader, Writer};
 
@@ -59,39 +58,5 @@ impl Decode<'_> for Uuid {
             Ok(v) => Some(v),
             Err(_) => None
         }
-    }
-}
-
-impl Encode for Vec2 {
-    fn encode(&self, w: &mut Writer) {
-        self.x.encode(w);
-        self.y.encode(w);
-    }
-}
-
-impl Decode<'_> for Vec2 {
-    fn decode(r: &mut Reader<'_>) -> Option<Self> {
-        Some(Self {
-            x: f32::decode(r)?,
-            y: f32::decode(r)?
-        })
-    }
-}
-
-impl Encode for Vec3 {
-    fn encode(&self, w: &mut Writer) {
-        self.x.encode(w);
-        self.y.encode(w);
-        self.z.encode(w);
-    }
-}
-
-impl Decode<'_> for Vec3 {
-    fn decode(r: &mut Reader<'_>) -> Option<Self> {
-        Some(Self {
-            x: f32::decode(r)?,
-            y: f32::decode(r)?,
-            z: f32::decode(r)?
-        })
     }
 }

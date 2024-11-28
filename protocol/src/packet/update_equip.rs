@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use binary::{VarI32, VarI64};
+use binary::{v32, v64};
 use derive::{Decode, Encode, Packet};
 
 use crate::types::inventory::Window;
@@ -17,10 +17,10 @@ pub struct UpdateEquip {
     pub window_type: u8,
     /// The size of the horse inventory that should be opened. A bigger size does, in fact, change
     /// the amount of slots displayed.
-    pub size: VarI32,
+    pub size: v32,
     /// The unique ID of the entity whose equipment was 'updated' to the player. It is typically the
     /// horse entity that had its inventory opened.
-    pub entity_unique_id: VarI64,
+    pub entity_unique_id: v64,
     /// Network NBT serialised compound holding the content of the inventory of the entity (the
     /// equipment) and additional data such as the allowed items for a particular slot, used to make
     /// sure only saddles can be put in the saddle slot etc.

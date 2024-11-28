@@ -12,7 +12,7 @@ pub struct ShowCredits {
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum ShowCreditsStatus {
     Start,
     End,

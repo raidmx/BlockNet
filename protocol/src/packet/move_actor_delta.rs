@@ -1,17 +1,15 @@
-use glam::Vec3;
+use crate::types::Vec3;
 use num_derive::{FromPrimitive, ToPrimitive};
-
-use crate::proto::io::{Reader, Writer};
-use crate::proto::packet::PacketType;
+use binary::{w64, Decode, Encode, Reader, Writer};
 
 /// Sent by the server to move an entity. The packet is specifically optimised to save as much space
 /// as possible, by only writing non-zero fields. As of 1.16.100, this packet no longer actually
 /// contains any deltas.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct MoveActorDelta {
     /// The runtime ID of the entity that is being moved. The packet works provided a non-player
     /// entity with this runtime ID is present.
-    pub entity_runtime_id: u64,
+    pub entity_runtime_id: w64,
     /// A list of flags that specify what data is in the packet.
     pub flags: u16,
     /// The new position that the entity was moved to.
@@ -21,68 +19,66 @@ pub struct MoveActorDelta {
     pub rotation: Vec3,
 }
 
-impl PacketType for MoveActorDelta {
-    fn write(&self, writer: &mut Writer) {
-        writer.var_u64(self.entity_runtime_id);
-        writer.u16(self.flags);
+impl Encode for MoveActorDelta {
+    fn encode(&self, w: &mut Writer) {
+        self.entity_runtime_id.encode(w);
+        self.flags.encode(w);
+
         if self.flags & MoveActorDeltaFlag::HasX.flag() != 0 {
-            writer.f32(self.position.x);
+            self.position.x.encode(w);
         }
         if self.flags & MoveActorDeltaFlag::HasY.flag() != 0 {
-            writer.f32(self.position.y);
+            self.position.y.encode(w);
         }
         if self.flags & MoveActorDeltaFlag::HasZ.flag() != 0 {
-            writer.f32(self.position.z);
+            self.position.z.encode(w);
         }
         if self.flags & MoveActorDeltaFlag::HasRotX.flag() != 0 {
-            writer.byte_f32(self.rotation.x);
+            ((self.rotation.x / (360.0 / 256.0)) as u8).encode(w);
         }
         if self.flags & MoveActorDeltaFlag::HasRotY.flag() != 0 {
-            writer.byte_f32(self.rotation.y);
+            ((self.rotation.y / (360.0 / 256.0)) as u8).encode(w);
         }
         if self.flags & MoveActorDeltaFlag::HasRotZ.flag() != 0 {
-            writer.byte_f32(self.rotation.z);
-        }
-    }
-
-    fn read(reader: &mut Reader) -> Self {
-        let entity_runtime_id = reader.var_u64();
-        let flags = reader.u16();
-        Self {
-            entity_runtime_id,
-            flags,
-            position: {
-                let mut position = Vec3::default();
-                if flags & MoveActorDeltaFlag::HasX.flag() != 0 {
-                    position.x = reader.f32();
-                }
-                if flags & MoveActorDeltaFlag::HasY.flag() != 0 {
-                    position.y = reader.f32();
-                }
-                if flags & MoveActorDeltaFlag::HasZ.flag() != 0 {
-                    position.z = reader.f32();
-                }
-                position
-            },
-            rotation: {
-                let mut rotation = Vec3::default();
-                if flags & MoveActorDeltaFlag::HasRotX.flag() != 0 {
-                    rotation.x = reader.byte_f32();
-                }
-                if flags & MoveActorDeltaFlag::HasRotY.flag() != 0 {
-                    rotation.y = reader.byte_f32();
-                }
-                if flags & MoveActorDeltaFlag::HasRotZ.flag() != 0 {
-                    rotation.z = reader.byte_f32();
-                }
-                rotation
-            },
+            ((self.rotation.z / (360.0 / 256.0)) as u8).encode(w);
         }
     }
 }
 
-#[derive(Clone, Copy, Debug, FromPrimitive, ToPrimitive)]
+impl Decode<'_> for MoveActorDelta {
+    fn decode(r: &mut Reader<'_>) -> Option<Self> {
+        let mut pk = Self {
+            entity_runtime_id: w64::decode(r)?,
+            flags: u16::decode(r)?,
+            ..Default::default()
+        };
+
+        if pk.flags & MoveActorDeltaFlag::HasX.flag() != 0 {
+            pk.position.x = f32::decode(r)?;
+        }
+        if pk.flags & MoveActorDeltaFlag::HasY.flag() != 0 {
+            pk.position.y = f32::decode(r)?;
+        }
+        if pk.flags & MoveActorDeltaFlag::HasZ.flag() != 0 {
+            pk.position.z = f32::decode(r)?;
+        }
+        if pk.flags & MoveActorDeltaFlag::HasRotX.flag() != 0 {
+            pk.rotation.x = (u8::decode(r)? as f32) * (360.0 / 256.0);
+        }
+        if pk.flags & MoveActorDeltaFlag::HasRotY.flag() != 0 {
+            pk.rotation.y = (u8::decode(r)? as f32) * (360.0 / 256.0);
+        }
+        if pk.flags & MoveActorDeltaFlag::HasRotZ.flag() != 0 {
+            pk.rotation.z = (u8::decode(r)? as f32) * (360.0 / 256.0);
+        }
+
+        Some(pk)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, FromPrimitive, ToPrimitive)]
 pub enum MoveActorDeltaFlag {
+    #[default]
     HasX,
     HasY,
     HasZ,

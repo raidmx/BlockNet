@@ -1,4 +1,4 @@
-use binary::VarI32;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to make a title, subtitle or action bar shown to a player. It has several
@@ -13,13 +13,13 @@ pub struct SetTitle {
     pub text: String,
     /// The duration that the title takes to fade in on the screen of the player. It is measured in
     /// 20ths of a second (AKA in ticks).
-    pub fade_in_duration: VarI32,
+    pub fade_in_duration: v32,
     /// The duration that the title remains on the screen of the player. It is measured in 20ths of
     /// a second (AKA in ticks).
-    pub remain_duration: VarI32,
+    pub remain_duration: v32,
     /// The duration that the title takes to fade out of the screen of the player. It is measured in
     /// 20ths of a second (AKA in ticks).
-    pub fade_out_duration: VarI32,
+    pub fade_out_duration: v32,
     /// The XBOX Live user ID of the player, which will remain consistent as long as the player is
     /// logged in with the XBOX Live account. It is empty if the user is not logged into its XBL
     /// account.
@@ -29,7 +29,7 @@ pub struct SetTitle {
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum TitleAction {
     Clear,
     Reset,

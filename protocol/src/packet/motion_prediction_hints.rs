@@ -1,5 +1,5 @@
-use glam::Vec3;
-use binary::VarU64;
+use crate::types::Vec3;
+use binary::w64;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to the client. There is a predictive movement component for entities. This
@@ -9,7 +9,7 @@ use derive::{Decode, Encode, Packet};
 #[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct MotionPredictionHints {
     /// The runtime ID of the entity whose velocity is sent to the client.
-    pub entity_runtime_id: VarU64,
+    pub entity_runtime_id: w64,
     /// The server-calculated velocity of the entity at the point of sending the packet.
     pub velocity: Vec3,
     /// Specifies if the server currently thinks the entity is on the ground.

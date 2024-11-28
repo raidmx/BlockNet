@@ -1,11 +1,11 @@
 use uuid::Uuid;
-use binary::{Decode, Encode, Reader, VarI32, VarU32, Writer};
+use binary::{Decode, Encode, Reader, v32, w32, Writer};
 use derive::{Decode, Encode};
 use crate::types::{ItemDescriptorCount, ItemStack};
 
 #[repr(u32)]
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarU32)]
+#[encoding(type = w32)]
 pub enum Recipe<'a> {
     ShapelessRecipe(ShapelessRecipe<'a>),
     ShapedRecipe(ShapedRecipe<'a>),
@@ -48,7 +48,7 @@ pub type SmithingTrimRecipe<'a> = ShapelessRecipe<'a>;
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct MultiRecipe {
     pub uuid: Uuid,
-    pub recipe_network_id: VarU32,
+    pub recipe_network_id: w32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
@@ -58,19 +58,19 @@ pub struct FurnaceDataRecipe<'a> {
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct FurnaceRecipe<'a> {
-    pub network_id: VarI32,
+    pub network_id: v32,
     pub output: ItemStack<'a>,
     pub block: String,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct PotionRecipe {
-    pub input_potion_id: VarI32,
-    pub input_potion_metadata: VarI32,
-    pub reagent_item_id: VarI32,
-    pub reagent_item_metadata: VarI32,
-    pub output_potion_id: VarI32,
-    pub output_potion_metadata: VarI32,
+    pub input_potion_id: v32,
+    pub input_potion_metadata: v32,
+    pub reagent_item_id: v32,
+    pub reagent_item_metadata: v32,
+    pub output_potion_id: v32,
+    pub output_potion_metadata: v32,
 }
 
 pub type ShapedChemistryRecipe<'a> = ShapedRecipe<'a>;
@@ -84,8 +84,8 @@ pub struct ShapedRecipe<'a> {
     pub output: Vec<ItemStack<'a>>,
     pub uuid: Uuid,
     pub block: &'a str,
-    pub priority: VarI32,
-    pub recipe_network_id: VarU32,
+    pub priority: v32,
+    pub recipe_network_id: w32,
 }
 
 impl<'a> Encode for ShapedRecipe<'a> {
@@ -119,8 +119,8 @@ impl<'a> Decode<'a> for ShapedRecipe<'a> {
         let output = Vec::decode(r)?;
         let uuid = Uuid::decode(r)?;
         let block = <&str>::decode(r)?;
-        let priority = VarI32::decode(r)?;
-        let recipe_network_id = VarU32::decode(r)?;
+        let priority = v32::decode(r)?;
+        let recipe_network_id = w32::decode(r)?;
 
         Some(Self {
             recipe_id,
@@ -145,8 +145,8 @@ pub struct ShapelessRecipe<'a> {
     pub output: Vec<ItemStack<'a>>,
     pub uuid: Uuid,
     pub block: String,
-    pub priority: VarI32,
-    pub recipe_network_id: VarU32,
+    pub priority: v32,
+    pub recipe_network_id: w32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
@@ -164,13 +164,13 @@ pub struct ItemType {
 
 impl Encode for ItemType {
     fn encode(&self, w: &mut Writer) {
-        VarI32::new((self.network_id << 16) | (self.metadata_value as i32)).encode(w);
+        v32::new((self.network_id << 16) | (self.metadata_value as i32)).encode(w);
     }
 }
 
 impl Decode<'_> for ItemType {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
-        let value = VarI32::decode(r)?.get();
+        let value = v32::decode(r)?.get();
         
         Some(Self {
             network_id: value << 16,
@@ -181,15 +181,15 @@ impl Decode<'_> for ItemType {
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct MaterialReducerOutput {
-    pub network_id: VarI32,
-    pub count: VarI32,
+    pub network_id: v32,
+    pub count: v32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct PotionContainerChangeRecipe {
-    pub input_item_id: VarI32,
-    pub reagent_item_id: VarI32,
-    pub output_item_id: VarI32,
+    pub input_item_id: v32,
+    pub reagent_item_id: v32,
+    pub output_item_id: v32,
 }
 
 pub type ShulkerBoxRecipe<'a> = ShapelessRecipe<'a>;

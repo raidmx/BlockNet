@@ -1,4 +1,4 @@
-use binary::VarU32;
+use binary::w32;
 use derive::{Decode, Encode};
 
 #[derive(Debug, Clone, Encode, Decode)]
@@ -10,9 +10,9 @@ pub struct GameRule {
 
 #[repr(u32)]
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarU32)]
+#[encoding(type = w32)]
 pub enum GameRuleValue {
     Bool(bool) = 1,
-    Int(VarU32) = 2,
+    Int(w32) = 2,
     Float(f32) = 3,
 }

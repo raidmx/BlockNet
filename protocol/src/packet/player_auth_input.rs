@@ -1,4 +1,4 @@
-use glam::{Vec2, Vec3};
+use crate::types::{Vec2, Vec3};
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::{FromPrimitive, ToPrimitive};
 

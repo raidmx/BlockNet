@@ -1,4 +1,4 @@
-use binary::VarI32;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 use crate::types::BlockPos;
 
@@ -6,9 +6,9 @@ use crate::types::BlockPos;
 #[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct GameTestRequest {
     /// The purpose of this field is currently unknown.
-    pub max_tests_per_batch: VarI32,
+    pub max_tests_per_batch: v32,
     /// The amount of times the test will be run.
-    pub repetitions: VarI32,
+    pub repetitions: v32,
     /// The rotation of the test.
     pub rotation: GameTestRequestRotation,
     /// Indicates whether the test should immediately stop when an error is encountered.
@@ -16,7 +16,7 @@ pub struct GameTestRequest {
     /// The position at which the test will be performed.
     pub position: BlockPos,
     /// The purpose of this field is currently unknown.
-    pub tests_per_row: VarI32,
+    pub tests_per_row: v32,
     /// The name of the test.
     pub name: String,
 }

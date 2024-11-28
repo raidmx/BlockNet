@@ -5,5 +5,4 @@ edition = "2021"
 
 [dependencies]
 bytes = "1.8.0"
-glam = "0.29.2"
 uuid = { version = "1.11.0", features = ["v4"] }

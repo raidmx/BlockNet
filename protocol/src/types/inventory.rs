@@ -1,13 +1,13 @@
 use std::fmt::Debug;
 
 use bytes::Bytes;
-use glam::Vec3;
-use binary::{Decode, Encode, Reader, VarI32, VarU32, VarU64, Writer};
+use crate::types::Vec3;
+use binary::{Decode, Encode, Reader, v32, w32, w64, Writer};
 use derive::{Decode, Encode};
 use crate::types::{BlockPos, ItemInstance, UBlockPos};
 
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum Window {
     Inventory = 0,
     OffHand = 119,
@@ -17,13 +17,13 @@ pub enum Window {
 
 #[repr(u32)]
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarU32)]
+#[encoding(type = w32)]
 pub enum InventoryActionSource {
     Container {
         window: Window
     } = 0,
     World {
-        source_flags: VarU32
+        source_flags: w32
     } = 2,
     Creative = 3,
     TODO {
@@ -45,9 +45,10 @@ pub struct LegacySetItemSlot {
     pub slots: Bytes,
 }
 
-#[derive(Debug, Clone, Encode, Decode)]
+#[derive(Debug, Clone, Default, Encode, Decode)]
 #[encoding(type = U8)]
 pub enum InventoryTransactionData {
+    #[default]
     NormalTransaction = 0,
     MismatchTransaction = 1,
     UseItemTransactionData = 2,
@@ -64,13 +65,13 @@ pub struct NormalTransaction {}
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct ReleaseItemTransaction<'a> {
     pub action_type: ReleaseItemAction,
-    pub hot_bar_slot: VarI32,
+    pub hot_bar_slot: v32,
     pub held_item: ItemInstance<'a>,
     pub head_position: Vec3,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarU32)]
+#[encoding(type = w32)]
 pub enum ReleaseItemAction {
     Release,
     Consume,
@@ -78,9 +79,9 @@ pub enum ReleaseItemAction {
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct UseItemOnEntityTransaction<'a> {
-    pub target_entity_runtime_id: VarU64,
-    pub action_type: VarU32,
-    pub hot_bar_slot: VarI32,
+    pub target_entity_runtime_id: w64,
+    pub action_type: w32,
+    pub hot_bar_slot: v32,
     pub held_item: ItemInstance<'a>,
     pub position: Vec3,
     pub clicked_position: Vec3,
@@ -88,29 +89,29 @@ pub struct UseItemOnEntityTransaction<'a> {
 
 #[derive(Debug, Clone, Default, Encode, Decode)]
 pub struct UseItemTransactionData<'a> {
-    pub action_type: VarU32,
+    pub action_type: w32,
     pub block_position: UBlockPos,
-    pub block_face: VarI32,
-    pub hot_bar_slot: VarI32,
+    pub block_face: v32,
+    pub hot_bar_slot: v32,
     pub held_item: ItemInstance<'a>,
     pub position: Vec3,
     pub clicked_position: Vec3,
-    pub block_runtime_id: VarU32,
+    pub block_runtime_id: w32,
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct PlayerInventoryAction<'a> {
-    pub legacy_request_id: VarI32,
+    pub legacy_request_id: v32,
     pub legacy_set_item_slots: Vec<LegacySetItemSlot>,
     pub actions: Vec<InventoryAction<'a>>,
-    pub action_type: VarU32,
+    pub action_type: w32,
     pub block_position: BlockPos,
-    pub block_face: VarI32,
-    pub hot_bar_slot: VarI32,
+    pub block_face: v32,
+    pub hot_bar_slot: v32,
     pub held_item: ItemInstance<'a>,
     pub position: Vec3,
     pub clicked_position: Vec3,
-    pub block_runtime_id: VarU32,
+    pub block_runtime_id: w32,
 }
 
 impl<'a> Encode for PlayerInventoryAction<'a> {
@@ -135,7 +136,7 @@ impl<'a> Encode for PlayerInventoryAction<'a> {
 
 impl<'a> Decode<'a> for PlayerInventoryAction<'a> {
     fn decode(r: &mut Reader<'a>) -> Option<Self> {
-        let legacy_request_id = VarI32::decode(r)?;
+        let legacy_request_id = v32::decode(r)?;
         let read_legacy_set_item_slots = *legacy_request_id < -1 && (*legacy_request_id & 1) == 0;
 
         let legacy_set_item_slots = if read_legacy_set_item_slots {
@@ -145,14 +146,14 @@ impl<'a> Decode<'a> for PlayerInventoryAction<'a> {
         };
 
         let actions = Vec::<InventoryAction>::decode(r)?;
-        let action_type = VarU32::decode(r)?;
+        let action_type = w32::decode(r)?;
         let block_position = BlockPos::decode(r)?;
-        let block_face = VarI32::decode(r)?;
-        let hot_bar_slot = VarI32::decode(r)?;
+        let block_face = v32::decode(r)?;
+        let hot_bar_slot = v32::decode(r)?;
         let held_item = ItemInstance::decode(r)?;
         let position = Vec3::decode(r)?;
         let clicked_position = Vec3::decode(r)?;
-        let block_runtime_id = VarU32::decode(r)?;
+        let block_runtime_id = w32::decode(r)?;
         
         Some(Self {
             legacy_request_id,

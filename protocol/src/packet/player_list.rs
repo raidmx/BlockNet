@@ -1,5 +1,5 @@
 use uuid::Uuid;
-use binary::VarI64;
+use binary::v64;
 use derive::{Decode, Encode};
 use crate::types::device::Device;
 use crate::types::skin::Skin;
@@ -69,7 +69,7 @@ pub struct PlayerListEntry {
     pub uuid: Uuid,
     /// The unique entity ID of the player. This ID typically stays consistent during the lifetime
     /// of a world, but servers often send the runtime ID for this.
-    pub entity_unique_id: VarI64,
+    pub entity_unique_id: v64,
     /// The username that is shown in the player list of the player that obtains a PlayerList packet
     /// with this entry. It does not have to be the same as the actual username of the player.
     pub username: String,

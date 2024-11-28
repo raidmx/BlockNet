@@ -1,5 +1,5 @@
-use glam::Vec3;
-use binary::{VarI64, VarU64};
+use crate::types::Vec3;
+use binary::{v64, w64};
 use derive::{Decode, Encode, Packet};
 use crate::types::{AttributeValue, EntityLink, EntityMetadata, EntityProperties};
 
@@ -10,10 +10,10 @@ pub struct AddActor<'a> {
     /// The unique ID of the entity. The unique ID is a value that remains consistent across
     /// different sessions of the same world, but most servers simply fill the runtime ID of the
     /// entity out for this field.
-    pub entity_unique_id: VarI64,
+    pub entity_unique_id: v64,
     /// The runtime ID of the entity. The runtime ID is unique for each world session, and entities
     /// are generally identified in packets using this runtime ID.
-    pub entity_runtime_id: VarU64,
+    pub entity_runtime_id: w64,
     /// The string entity type of the entity. A list of these entities may be found online.
     pub entity_type: &'a str,
     /// The position to spawn the entity on. If the entity is on a distance that the player cannot

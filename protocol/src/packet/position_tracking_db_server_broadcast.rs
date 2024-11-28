@@ -1,4 +1,4 @@
-use binary::VarI32;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 use crate::nbt::{NetworkLittleEndian, NBT};
 
@@ -17,7 +17,7 @@ pub struct PositionTrackingDBServerBroadcast<'a> {
     pub broadcast_action: PositionTrackingDBBroadcastAction,
     /// The ID of the PositionTrackingDBClientRequest packet that this packet was in response to.
     /// The tracking ID is also present as the 'id' field in the serialised data field.
-    pub tracking_id: VarI32,
+    pub tracking_id: v32,
     /// A network little endian tag holding the data retrieved from the position tracking DB.
     pub payload: NBT<'a, NetworkLittleEndian>,
 }

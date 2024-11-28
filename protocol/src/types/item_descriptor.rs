@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-use binary::{Decode, Encode, Reader, VarI32, Writer};
+use binary::{Decode, Encode, Reader, v32, Writer};
 use derive::{Decode, Encode};
 
 #[derive(Debug, Clone)]
@@ -71,5 +71,5 @@ pub enum ItemDescriptor {
 #[derive(Debug, Clone, Default, Encode, Decode)]
 pub struct ItemDescriptorCount {
     pub item_descriptor: ItemDescriptor,
-    pub count: VarI32,
+    pub count: v32,
 }

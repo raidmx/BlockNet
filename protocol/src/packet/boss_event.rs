@@ -1,4 +1,4 @@
-use binary::{VarI64, VarU32};
+use binary::{v64, w32};
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to make a specific 'boss event' occur in the world. It includes features such
@@ -7,14 +7,14 @@ use derive::{Decode, Encode, Packet};
 pub struct BossEvent {
     /// The unique ID of the boss entity that the boss event sent involves. The health percentage
     /// and title of the boss bar depend on the health and name tag of this entity.
-    pub boss_entity_unique_id: VarI64,
+    pub boss_entity_unique_id: v64,
     /// The type of the event. Some event types
     /// are sent by the client, whereas others are sent by the server.
     pub event_type: BossEventType,
 }
 
 #[derive(Debug, Clone, PartialEq, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum BossEventColour {
     Grey,
     Blue,
@@ -26,7 +26,7 @@ pub enum BossEventColour {
 }
 
 #[derive(Debug, Clone, PartialEq, Encode, Decode)]
-#[encoding(type = VarU32)]
+#[encoding(type = w32)]
 pub enum BossEventType {
     Show(BossEventShow),
     RegisterPlayer(BossEventRegisterPlayer),
@@ -54,25 +54,25 @@ pub struct BossEventShow {
     pub colour: BossEventColour,
     /// The overlay of the boss bar that is shown on top of the boss bar when a player is
     /// subscribed. It currently does not function.
-    pub overlay: VarU32,
+    pub overlay: w32,
 }
 
 #[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct BossEventRegisterPlayer {
     /// The unique ID of the player that is registered to or unregistered from the boss fight.
-    pub player_unique_id: VarI64,
+    pub player_unique_id: v64,
 }
 
 #[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct BossEventUnregisterPlayer {
     /// The unique ID of the player that is registered to or unregistered from the boss fight.
-    pub player_unique_id: VarI64,
+    pub player_unique_id: v64,
 }
 
 #[derive(Debug, Clone, PartialEq, Encode, Decode)]
 pub struct BossEventRequest {
     /// The unique ID of the player that is registered to or unregistered from the boss fight.
-    pub player_unique_id: VarI64,
+    pub player_unique_id: v64,
 }
 
 #[derive(Debug, Clone, PartialEq, Encode, Decode)]
@@ -98,7 +98,7 @@ pub struct BossEventAppearanceProperties {
     pub colour: BossEventColour,
     /// The overlay of the boss bar that is shown on top of the boss bar when a player is
     /// subscribed. It currently does not function.
-    pub overlay: VarU32,
+    pub overlay: w32,
 }
 
 #[derive(Debug, Clone, PartialEq, Encode, Decode)]
@@ -108,5 +108,5 @@ pub struct BossEventTexture {
     pub colour: BossEventColour,
     /// The overlay of the boss bar that is shown on top of the boss bar when a player is
     /// subscribed. It currently does not function.
-    pub overlay: VarU32,
+    pub overlay: w32,
 }

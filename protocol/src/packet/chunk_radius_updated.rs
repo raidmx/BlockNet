@@ -1,4 +1,4 @@
-use binary::VarI32;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the server in response to a RequestChunkRadius packet. It defines the chunk radius that
@@ -8,5 +8,5 @@ use derive::{Decode, Encode, Packet};
 pub struct ChunkRadiusUpdated {
     /// The final chunk radius that the client will adapt when it receives the packet. It does not
     /// have to be the same as the requested chunk radius.
-    pub chunk_radius: VarI32,
+    pub chunk_radius: v32,
 }

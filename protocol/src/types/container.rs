@@ -85,7 +85,7 @@ pub enum ContainerDataBrewingStand {
 }
 
 #[derive(Debug, Copy, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum ContainerType {
     Inventory = -1,
     Container = 0,

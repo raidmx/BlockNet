@@ -1,4 +1,4 @@
-use binary::VarU64;
+use binary::w64;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the client when it interacts with an NPC. The packet is specifically made for Education
@@ -7,7 +7,7 @@ use derive::{Decode, Encode, Packet};
 pub struct NPCRequest {
     /// The runtime ID of the NPC entity that the player interacted with. It is the same as sent by
     /// the server when spawning the entity.
-    pub entity_runtime_id: VarU64,
+    pub entity_runtime_id: w64,
     /// The type of the request, which depends on the permission that the player has. It will be
     /// either a type that indicates that the NPC should show its dialog, or that it should open the
     /// editing window.

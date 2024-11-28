@@ -1,10 +1,10 @@
-use std::iter;
+use binary::{Decode, Encode, Numeric, Reader, w32, Writer};
 use derive::{Decode, Encode, Packet};
 use crate::types::command::{CommandEnum, CommandEnumConstraint};
 
 /// Sent by the server to define a list of all commands that the client can use on the server, along
 /// with how to use them.
-#[derive(Debug, Clone, Encode, Decode, Packet)]
+#[derive(Debug, Clone, Packet)]
 pub struct AvailableCommands {
     pub enum_values: Vec<String>,
     pub chained_subcommand_values: Vec<String>,
@@ -82,59 +82,43 @@ pub struct DynamicEnum {
     pub values: String,
 }
 
-impl Readable<AvailableCommands> for AvailableCommands {
-    fn read(reader: &mut Reader) -> AvailableCommands {
-        let enum_values: Vec<_> = iter::empty::<()>()
-            .take(VarU32::read(reader).0 as usize)
-            .map(|_| String::read(reader))
-            .collect();
-        let chained_subcommand_values = iter::empty::<()>()
-            .take(VarU32::read(reader).0 as usize)
-            .map(|_| String::read(reader))
-            .collect();
-        let suffixes = iter::empty::<()>()
-            .take(VarU32::read(reader).0 as usize)
-            .map(|_| String::read(reader))
-            .collect();
-        let enums = iter::empty::<()>()
-            .take(VarU32::read(reader).0 as usize)
-            .map(|_| {
-                let enum_type = String::read(reader);
-                let value_indices_len = VarU32::read(reader).0;
-                let mut value_indices = Vec::new();
-                for _ in 0..value_indices_len {
-                    value_indices.push(if enum_values.len() < (u8::MAX as usize) {
-                        reader.u8() as u32
-                    } else if enum_values.len() < (u16::MAX as usize) {
-                        reader.u16() as u32
-                    } else {
-                        reader.u32()
-                    });
-                }
-                CommandEnum {
-                    enum_type,
-                    value_indices,
-                }
-            })
-            .collect();
-        let chained_subcommands = iter::empty::<()>()
-            .take(VarU32::read(reader).0 as usize)
-            .map(|_| ChainedSubcommand::read(reader))
-            .collect();
-        let commands = iter::empty::<()>()
-            .take(VarU32::read(reader).0 as usize)
-            .map(|_| Command::read(reader))
-            .collect();
-        let dynamic_enums = iter::empty::<()>()
-            .take(VarU32::read(reader).0 as usize)
-            .map(|_| DynamicEnum::read(reader))
-            .collect();
-        let constraints = iter::empty::<()>()
-            .take(VarU32::read(reader).0 as usize)
-            .map(|_| CommandEnumConstraint::read(reader))
-            .collect();
+impl Decode<'_> for AvailableCommands {
+    fn decode(r: &mut Reader<'_>) -> Option<Self> {
+        let enum_values = Vec::decode(r)?;
+        let chained_subcommand_values = Vec::decode(r)?;
+        let suffixes = Vec::decode(r)?;
 
-        Self {
+        let enums_len = w32::decode(r)?.to_usize();
+        let mut enums = Vec::with_capacity(enums_len);
+
+        for _ in 0..enums_len {
+            let enum_type = String::decode(r)?;
+            let value_indices_len = w32::decode(r)?.to_usize();
+
+            let mut value_indices = Vec::with_capacity(value_indices_len);
+
+            for _ in 0..value_indices_len {
+                value_indices.push(if enum_values.len() < (u8::MAX as usize) {
+                    u8::decode(r)? as u32
+                } else if enum_values.len() < (u16::MAX as usize) {
+                    u16::decode(r)? as u32
+                } else {
+                    u32::decode(r)?
+                });
+            }
+
+            enums.push(CommandEnum {
+                enum_type,
+                value_indices,
+            });
+        }
+
+        let chained_subcommands = Vec::decode(r)?;
+        let commands = Vec::decode(r)?;
+        let dynamic_enums = Vec::decode(r)?;
+        let constraints = Vec::decode(r)?;
+
+        Some(Self {
             enum_values,
             chained_subcommand_values,
             suffixes,
@@ -143,53 +127,37 @@ impl Readable<AvailableCommands> for AvailableCommands {
             commands,
             dynamic_enums,
             constraints,
-        }
+        })
     }
 }
 
-impl Writable for AvailableCommands {
-    fn write(&self, writer: &mut Writer) {
-        writer.var_u32(self.enum_values.len() as u32);
-        for v in &self.enum_values {
-            v.write(writer);
-        }
-        writer.var_u32(self.chained_subcommand_values.len() as u32);
-        for v in &self.chained_subcommand_values {
-            v.write(writer);
-        }
-        writer.var_u32(self.suffixes.len() as u32);
-        for v in &self.suffixes {
-            v.write(writer);
-        }
-        writer.var_u32(self.enums.len() as u32);
+impl Encode for AvailableCommands {
+    fn encode(&self, w: &mut Writer) {
+        self.enum_values.encode(w);
+        self.chained_subcommand_values.encode(w);
+        self.suffixes.encode(w);
+
+        w32::new(self.enums.len() as u32).encode(w);
+
         for v in &self.enums {
-            v.enum_type.write(writer);
-            writer.var_u32(v.value_indices.len() as u32);
+            v.enum_type.encode(w);
+
+            w32::new(v.value_indices.len() as u32).encode(w);
+
             for v in v.value_indices.iter().cloned() {
                 if self.enum_values.len() < u8::MAX as usize {
-                    writer.u8(v as u8);
+                    (v as u8).encode(w);
                 } else if self.enum_values.len() < u16::MAX as usize {
-                    writer.u16(v as u16);
+                    (v as u16).encode(w);
                 } else {
-                    writer.u32(v);
+                    v.encode(w);
                 }
             }
         }
-        writer.var_u32(self.chained_subcommands.len() as u32);
-        for v in &self.chained_subcommands {
-            v.write(writer);
-        }
-        writer.var_u32(self.commands.len() as u32);
-        for v in &self.commands {
-            v.write(writer);
-        }
-        writer.var_u32(self.dynamic_enums.len() as u32);
-        for v in &self.dynamic_enums {
-            v.write(writer);
-        }
-        writer.var_u32(self.constraints.len() as u32);
-        for v in &self.constraints {
-            v.write(writer);
-        }
+
+        self.chained_subcommands.encode(w);
+        self.commands.encode(w);
+        self.dynamic_enums.encode(w);
+        self.constraints.encode(w);
     }
 }

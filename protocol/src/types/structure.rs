@@ -1,10 +1,10 @@
-use glam::Vec3;
-use binary::VarI64;
+use crate::types::Vec3;
+use binary::v64;
 use derive::{Decode, Encode};
 use crate::types::UBlockPos;
 
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarU32)]
+#[encoding(type = w32)]
 pub enum StructureBlockType {
     Data,
     Save,
@@ -23,7 +23,7 @@ pub enum StructureMirrorAxis {
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum StructureRedstoneSaveMode {
     Memory,
     Disk,
@@ -70,7 +70,7 @@ pub struct StructureSettings {
     pub allow_non_ticking_chunks: bool,
     pub size: UBlockPos,
     pub offset: UBlockPos,
-    pub last_editing_player_unique_id: VarI64,
+    pub last_editing_player_unique_id: v64,
     pub rotation: u8,
     pub mirror: u8,
     pub animation_mode: AnimationMode,

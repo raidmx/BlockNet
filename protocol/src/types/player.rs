@@ -1,11 +1,11 @@
 use num_derive::{FromPrimitive, ToPrimitive};
-use binary::VarI32;
+use binary::v32;
 use derive::{Decode, Encode};
 use crate::types::BlockPos;
 
 #[repr(i32)]
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum PlayerActionType {
     StartBreak(BlockDetail),
     AbortBreak(BlockDetail),
@@ -49,7 +49,7 @@ pub enum PlayerActionType {
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct BlockDetail {
     pub pos: BlockPos,
-    pub face: VarI32
+    pub face: v32
 }
 
 #[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
@@ -94,8 +94,8 @@ pub enum TeleportCause {
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct PlayerMovementSettings {
-    pub movement_type: VarI32,
-    pub rewind_history_size: VarI32,
+    pub movement_type: v32,
+    pub rewind_history_size: v32,
     pub server_authoritative_block_breaking: bool,
 }
 

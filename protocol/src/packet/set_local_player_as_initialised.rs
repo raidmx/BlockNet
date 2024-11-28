@@ -1,4 +1,4 @@
-use binary::VarU64;
+use binary::w64;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the client in response to a PlayStatus packet with the status set to PlayerSpawn. The
@@ -8,5 +8,5 @@ use derive::{Decode, Encode, Packet};
 pub struct SetLocalPlayerAsInitialised {
     /// The entity runtime ID the player was assigned earlier in the login sequence in the StartGame
     /// packet.
-    pub entity_runtime_id: VarU64,
+    pub entity_runtime_id: w64,
 }

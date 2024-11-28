@@ -1,5 +1,5 @@
 use bytes::BufMut;
-use binary::{Decode, Encode, Reader, VarU32, Writer};
+use binary::{Decode, Encode, Reader, w32, Writer};
 use derive::{Decode, Encode};
 
 #[derive(Debug, Clone, Encode, Decode)]
@@ -50,7 +50,7 @@ pub struct VarRGBA {
 
 impl Encode for VarRGBA {
     fn encode(&self, w: &mut Writer) {
-        VarU32::new(
+        w32::new(
             (self.r as u32)
                 | ((self.g as u32) << 8)
                 | ((self.b as u32) << 16)
@@ -61,7 +61,7 @@ impl Encode for VarRGBA {
 
 impl Decode<'_> for VarRGBA {
     fn decode(r: &mut Reader) -> Option<Self> {
-        let value = VarU32::decode(r)?.get();
+        let value = w32::decode(r)?.get();
         Some(Self {
             r: value as u8,
             g: (value >> 8) as u8,

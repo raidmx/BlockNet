@@ -1,4 +1,4 @@
-use binary::VarU64;
+use binary::w64;
 use derive::{Decode, Encode, Packet};
 
 use crate::types::attribute::Attribute;
@@ -9,12 +9,12 @@ use crate::types::attribute::Attribute;
 pub struct UpdateAttributes<'a> {
     /// The runtime ID of the entity. The runtime ID is unique for each world session, and entities
     /// are generally identified in packets using this runtime ID.
-    pub entity_runtime_id: VarU64,
+    pub entity_runtime_id: w64,
     /// A list of new attributes that the entity gets. It includes attributes such as its health,
     /// movement speed, etc. Note that only changed attributes have to be sent in this packet. It is
     /// not required to send attributes that did not have their values changed.
     pub attributes: Vec<Attribute<'a>>,
     /// The server tick at which the packet was sent. It is used in relation to
     /// CorrectPlayerMovePrediction.
-    pub tick: VarU64,
+    pub tick: w64,
 }

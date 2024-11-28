@@ -1,6 +1,7 @@
 use num_derive::{FromPrimitive, ToPrimitive};
 use derive::{Decode, Encode};
 use uuid::Uuid;
+use binary::{Encode, Numeric};
 
 #[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
 pub enum CommandArg {
@@ -38,7 +39,7 @@ pub enum CommandConstraint {
 }
 
 #[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
-#[encoding(type = VarU32)]
+#[encoding(type = w32)]
 pub enum CommandOriginType {
     Player,
     Block,
@@ -69,7 +70,7 @@ pub enum CommandOutputType {
 }
 
 #[derive(Debug, Copy, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
-#[encoding(type = VarU32)]
+#[encoding(type = w32)]
 pub enum CommandPermissionLevel {
     Normal,
     GameDirectors,

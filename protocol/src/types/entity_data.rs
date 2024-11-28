@@ -1,22 +1,22 @@
 use num_derive::{FromPrimitive, ToPrimitive};
 use std::collections::HashMap;
-use binary::{generate, Decode, Encode, Reader, VarI32, VarI64, VarU32, Writer};
+use binary::{generate, Decode, Encode, Reader, v32, v64, w32, Writer};
 use derive::{Decode, Encode};
 use crate::nbt::{NetworkLittleEndian, NBT};
-use glam::Vec3;
+use crate::types::Vec3;
 use crate::types::BlockPos;
 
 generate!(EntityMetadata, <>, HashMap<u32, EntityDataEntry<'a>>, 'a);
 
 impl<'a> Encode for EntityMetadata<'a> {
     fn encode(&self, w: &mut Writer) {
-        VarU32::new(self.len() as u32).encode(w);
+        w32::new(self.len() as u32).encode(w);
 
         let mut keys: Vec<&u32> = self.keys().collect();
         keys.sort();
 
         for key in keys.iter() {
-            VarU32::new(**key).encode(w);
+            w32::new(**key).encode(w);
             self.val.get(key).unwrap().encode(w);
         }
     }
@@ -24,9 +24,9 @@ impl<'a> Encode for EntityMetadata<'a> {
 
 impl<'a> Decode<'a> for EntityMetadata<'a> {
     fn decode(r: &mut Reader<'a>) -> Option<Self> {
-        let len = VarU32::decode(r)?.get() as usize;
+        let len = w32::decode(r)?.get() as usize;
         let data = (0..len).map(|_| {
-            let key = VarU32::decode(r)?.get();
+            let key = w32::decode(r)?.get();
             let value = EntityDataEntry::decode(r)?;
 
             Some((key, value))
@@ -44,27 +44,27 @@ pub struct EntityProperties {
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct IntegerEntityProperty {
-    pub index: VarU32,
-    pub value: VarI32,
+    pub index: w32,
+    pub value: v32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub struct FloatEntityProperty {
-    pub index: VarU32,
+    pub index: w32,
     pub value: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Encode, Decode)]
-#[encoding(type = VarU32)]
+#[encoding(type = w32)]
 pub enum EntityDataEntry<'a> {
     U8(u8),
     I16(i16),
-    I32(VarI32),
+    I32(v32),
     F32(f32),
     String(String),
     NBT(NBT<'a, NetworkLittleEndian>),
     BlockPos(BlockPos),
-    I64(VarI64),
+    I64(v64),
     Vec3(Vec3),
 }
 

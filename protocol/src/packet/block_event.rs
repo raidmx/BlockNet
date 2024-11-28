@@ -1,4 +1,4 @@
-use binary::VarI32;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 use crate::types::UBlockPos;
 
@@ -13,11 +13,11 @@ pub struct BlockEvent {
     pub event_type: BlockEventType,
     /// Holds event type specific data. For chests, for example, opening the chest means the data
     /// must hold one, whereas closing it should hold zero.
-    pub event_data: VarI32,
+    pub event_data: v32,
 }
 
 #[derive(Debug, Clone, Encode, Decode)]
-#[encoding(type = VarI32)]
+#[encoding(type = v32)]
 pub enum BlockEventType {
     None,
     ChangeChestState,

@@ -1,5 +1,5 @@
 use num_derive::{FromPrimitive, ToPrimitive};
-use binary::VarU64;
+use binary::w64;
 use derive::{Decode, Encode, Packet};
 
 #[derive(Debug, Copy, Clone, FromPrimitive, ToPrimitive)]
@@ -20,7 +20,7 @@ impl EmoteFlag {
 pub struct Emote {
     /// The entity that sent the emote. When a player sends this packet, it has this field set as
     /// its own entity runtime ID.
-    pub entity_runtime_id: VarU64,
+    pub entity_runtime_id: w64,
     /// The ID of the emote to send.
     pub emote_id: String,
     /// The Xbox User ID of the player that sent the emote. It is only set when the emote is used by

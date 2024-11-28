@@ -1,4 +1,4 @@
-use glam::Vec3;
+use crate::types::Vec3;
 use derive::{Decode, Encode, Packet};
 use crate::types::world::Dimension;
 
@@ -9,7 +9,7 @@ use crate::types::world::Dimension;
 pub struct ChangeDimension {
     /// The dimension that the client should be changed to. The dimension must be different from the
     /// one the player is currently in, otherwise the client will freeze on the screen.
-    #[encoding(type = VarI32)]
+    #[encoding(type = v32)]
     pub dimension: Dimension,
     /// The position in the new dimension that the player is spawned in.
     pub position: Vec3,

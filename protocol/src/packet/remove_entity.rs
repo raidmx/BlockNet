@@ -1,4 +1,4 @@
-use binary::VarU64;
+use binary::w64;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the server to the client. Its function is not entirely clear: It does not remove an
@@ -6,5 +6,5 @@ use derive::{Decode, Encode, Packet};
 #[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct RemoveEntity {
     /// The network ID of the entity that should be removed.
-    pub entity_network_id: VarU64,
+    pub entity_network_id: w64,
 }

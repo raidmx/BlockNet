@@ -1,5 +1,4 @@
-use num_traits::{FromPrimitive, ToPrimitive};
-use binary::VarU32;
+use binary::{w32, Encode, Decode, Writer, Reader};
 use crate::types::command::{CommandOrigin, CommandOutputMessage, CommandOutputType};
 
 /// Sent by the server to the client to send text as output of a command. Most servers do not use
@@ -9,7 +8,7 @@ use crate::types::command::{CommandOrigin, CommandOutputMessage, CommandOutputTy
 /// client's chat. The CommandOutput packet will make sure the messages are relayed to the correct
 /// origin of the command request.
 #[derive(Debug, Clone)]
-pub struct CommandOutput {
+pub struct CommandOutput<'a> {
     /// The data specifying the origin of the command. In other words, the source that the command
     /// request was from, such as the player itself or a WS server. The client forwards the messages
     /// in this packet to the right origin, depending on what is sent here.
@@ -19,45 +18,41 @@ pub struct CommandOutput {
     /// The amount of times that a command was executed successfully as a result of the command that
     /// was requested. For servers, this is usually a rather meaningless fields, but for vanilla,
     /// this is applicable for commands created with functions.
-    pub success_count: VarU32,
+    pub success_count: w32,
     /// A list of all output messages that should be sent to the player. Whether they are shown or
     /// not, depends on the type of the messages.
     pub output_messages: Vec<CommandOutputMessage>,
     /// The purpose of this field is currently unknown.
-    pub data_set: String,
+    pub data_set: &'a str,
 }
 
-impl PacketType for CommandOutput {
-    fn write(&self, writer: &mut Writer) {
-        self.command_origin.write(writer);
-        writer.u8(self.output_type.to_u8().unwrap());
-        writer.var_u32(self.success_count);
-
-        writer.var_u32(self.output_messages.len() as u32);
-        self.output_messages
-            .iter()
-            .for_each(|message| message.write(writer));
+impl<'a> Encode for CommandOutput<'a> {
+    fn encode(&self, w: &mut Writer) {
+        self.command_origin.encode(w);
+        self.output_type.encode(w);
+        self.success_count.encode(w);
+        self.output_messages.encode(w);
 
         if self.output_type == CommandOutputType::DataSet {
-            writer.string(self.data_set.as_str());
+            self.data_set.encode(w);
         }
     }
+}
 
-    fn read(reader: &mut Reader) -> Self {
-        let command_origin = CommandOrigin::read(reader);
-        let output_type = CommandOutputType::from_u8(reader.u8()).unwrap();
-        Self {
-            command_origin,
-            output_type,
-            success_count: reader.var_u32(),
-            output_messages: (0..reader.var_u32())
-                .map(|_| CommandOutputMessage::read(reader))
-                .collect(),
-            data_set: if output_type == CommandOutputType::DataSet {
-                reader.string()
-            } else {
-                String::new()
-            },
+impl<'a> Decode<'a> for CommandOutput<'a> {
+    fn decode(r: &mut Reader<'a>) -> Option<Self> {
+        let mut pk = Self {
+            command_origin: CommandOrigin::decode(r)?,
+            output_type: CommandOutputType::decode(r)?,
+            success_count: w32::decode(r)?,
+            output_messages: Vec::decode(r)?,
+            ..Default::default()
+        };
+
+        if pk.output_type == CommandOutputType::DataSet {
+            pk.data_set = <&'a str>::decode(r)?;
         }
+
+        Some(pk)
     }
 }

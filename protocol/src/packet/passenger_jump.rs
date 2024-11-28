@@ -1,4 +1,4 @@
-use binary::VarI32;
+use binary::v32;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the client to the server when it jumps while riding an entity that has the
@@ -6,5 +6,5 @@ use derive::{Decode, Encode, Packet};
 #[derive(Debug, Clone, Encode, Decode, Packet)]
 pub struct PassengerJump {
     /// The strength of the jump, depending on how long the rider has held the jump button.
-    pub jump_strength: VarI32,
+    pub jump_strength: v32,
 }

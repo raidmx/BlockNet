@@ -1,4 +1,4 @@
-use binary::VarU64;
+use binary::w64;
 use derive::{Decode, Encode, Packet};
 
 use crate::types::entity_data::{EntityMetadata, EntityProperties};
@@ -9,7 +9,7 @@ use crate::types::entity_data::{EntityMetadata, EntityProperties};
 pub struct SetActorData<'a> {
     /// The runtime ID of the entity. The runtime ID is unique for each world session, and entities
     /// are generally identified in packets using this runtime ID.
-    pub entity_runtime_id: VarU64,
+    pub entity_runtime_id: w64,
     /// A map of entity metadata, which includes flags and data properties that alter in particular
     /// the way the player looks. Flags include ones such as 'on fire' and 'sprinting'. The meta
     /// values are indexed by their property key.
@@ -19,5 +19,5 @@ pub struct SetActorData<'a> {
     pub entity_properties: EntityProperties,
     /// The server tick at which the packet was sent. It is used in relation to
     /// CorrectPlayerMovePrediction.
-    pub tick: VarU64,
+    pub tick: w64,
 }

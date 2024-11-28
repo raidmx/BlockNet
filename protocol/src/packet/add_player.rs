@@ -1,6 +1,6 @@
-use glam::Vec3;
+use crate::types::Vec3;
 use uuid::Uuid;
-use binary::VarU64;
+use binary::w64;
 use derive::{Decode, Encode, Packet};
 use crate::types::ability::AbilityData;
 use crate::types::device::Device;
@@ -21,7 +21,7 @@ pub struct AddPlayer<'a> {
     pub username: &'a str,
     /// The runtime ID of the player. The runtime ID is unique for each world session, and entities
     /// are generally identified in packets using this runtime ID.
-    pub entity_runtime_id: VarU64,
+    pub entity_runtime_id: w64,
     /// An identifier only set for particular platforms when chatting (presumably only for Nintendo
     /// Switch). It is otherwise an empty string, and is used to decide which players are able to
     /// chat with each other.

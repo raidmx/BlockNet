@@ -1,5 +1,5 @@
 use uuid::Uuid;
-use binary::VarU64;
+use binary::w64;
 use derive::{Decode, Encode, Packet};
 
 /// Sent by the client every time it joins the server and when it equips new emotes. It may be used
@@ -10,7 +10,7 @@ use derive::{Decode, Encode, Packet};
 pub struct EmoteList {
     /// The runtime ID of the player that owns the emote pieces below. If sent by the client, this
     /// player runtime ID is always that of the player itself.
-    pub player_runtime_id: VarU64,
+    pub player_runtime_id: w64,
     /// A list of emote pieces that the player with the runtime ID above has.
     pub emote_pieces: Vec<Uuid>,
 }
