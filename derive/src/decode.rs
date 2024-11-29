@@ -3,7 +3,7 @@ use quote::quote;
 use syn::spanned::Spanned;
 use syn::{parse2, parse_quote, Data, DeriveInput, Error, Fields, Result};
 
-use crate::{add_trait_bounds, decode_split_for_impl, get_encoding_type, pair_variants_with_discriminants};
+use crate::{add_trait_bounds, decode_split_for_impl, get_encoding_type, pair_variants_with_discriminants, should_skip};
 
 pub(super) fn derive_decode(item: TokenStream) -> Result<TokenStream> {
     let mut input = parse2::<DeriveInput>(item)?;
@@ -32,13 +32,20 @@ pub(super) fn derive_decode(item: TokenStream) -> Result<TokenStream> {
                     let init = fields.named.iter().map(|f| {
                         let name = f.ident.as_ref().unwrap();
                         let encoding_type = get_encoding_type(&f.attrs);
+                        let skip = should_skip(&f.attrs);
 
-                        match encoding_type {
-                            Some(et) => quote! {
-                                #name: EnumDecoder::read::<#et>(r)?,
-                            },
-                            None => quote! {
-                                #name: Decode::decode(r)?,
+                        if !skip {
+                            match encoding_type {
+                                Some(et) => quote! {
+                                    #name: EnumDecoder::read::<#et>(r)?,
+                                },
+                                None => quote! {
+                                    #name: Decode::decode(r)?,
+                                }
+                            }
+                        } else {
+                            quote! {
+                                #name: Default::default(),
                             }
                         }
                     });

@@ -67,8 +67,10 @@ pub enum MoveMode {
     Rotation,
 }
 
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, Default, Encode, Decode)]
+#[encoding(type = w32)]
 pub enum InputMode {
+    #[default]
     None,
     Mouse,
     Touch,
@@ -76,8 +78,10 @@ pub enum InputMode {
     MotionController,
 }
 
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, Default, Encode, Decode)]
+#[encoding(type = v32)]
 pub enum InteractionModel {
+    #[default]
     Touch,
     Crosshair,
     Classic,

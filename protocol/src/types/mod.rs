@@ -89,13 +89,6 @@ pub struct Vec3 {
     pub z: f32
 }
 
-#[derive(Default, Debug, Clone, PartialEq)]
-pub struct Rotation {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32
-}
-
 impl Encode for BlockPos {
     fn encode(&self, w: &mut Writer) {
         v32::new(self.x).encode(w);
@@ -178,24 +171,6 @@ impl Decode<'_> for Vec3 {
             x: f32::decode(r)?,
             y: f32::decode(r)?,
             z: f32::decode(r)?
-        })
-    }
-}
-
-impl Encode for Rotation {
-    fn encode(&self, w: &mut Writer) {
-        ((self.x / (360.0 / 256.0)) as u8).encode(w);
-        ((self.y / (360.0 / 256.0)) as u8).encode(w);
-        ((self.z / (360.0 / 256.0)) as u8).encode(w);
-    }
-}
-
-impl Decode<'_> for Rotation {
-    fn decode(r: &mut Reader<'_>) -> Option<Self> {
-        Some(Self {
-            x: (u8::decode(r)? as f32) * (360.0 / 256.0),
-            y: (u8::decode(r)? as f32) * (360.0 / 256.0),
-            z: (u8::decode(r)? as f32) * (360.0 / 256.0)
         })
     }
 }

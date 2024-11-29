@@ -3,7 +3,7 @@ use derive::Packet;
 
 /// Sent by the server to disconnect the client using an optional message to send as the disconnect
 /// screen.
-#[derive(Debug, Clone, Packet)]
+#[derive(Debug, Clone, Default, Packet)]
 pub struct Disconnect<'a> {
     /// The reason why the user was kicked. Used for telemetry.
     pub reason: v32,

@@ -42,7 +42,7 @@ pub struct ScoreboardEntry<'a> {
 }
 
 impl<'a> ScoreboardEntry<'a> {
-    pub fn write(&self, w: &mut Writer, action: ScoreboardAction) {
+    pub fn write(&self, w: &mut Writer, action: &ScoreboardAction) {
         self.entry_id.encode(w);
         self.objective_name.encode(w);
         self.score.encode(w);
@@ -52,7 +52,7 @@ impl<'a> ScoreboardEntry<'a> {
         }
     }
 
-    pub fn read(r: &mut &'a [u8], action: ScoreboardAction) -> Option<Self> {
+    pub fn read(r: &mut &'a [u8], action: &ScoreboardAction) -> Option<Self> {
         let entry_id = v64::decode(r)?;
         let objective_name = <&'a str>::decode(r)?;
         let score = i32::decode(r)?;
@@ -85,7 +85,7 @@ pub struct ScoreboardIdentityEntry {
 }
 
 impl ScoreboardIdentityEntry {
-    pub fn write(&self, w: &mut Writer, action: ScoreboardIdentityAction) {
+    pub fn write(&self, w: &mut Writer, action: &ScoreboardIdentityAction) {
         self.entry_id.encode(w);
 
         if let ScoreboardIdentityAction::Register = action {
@@ -93,7 +93,7 @@ impl ScoreboardIdentityEntry {
         }
     }
 
-    pub fn read(r: &mut Reader, action: ScoreboardIdentityAction) -> Option<Self> {
+    pub fn read(r: &mut Reader, action: &ScoreboardIdentityAction) -> Option<Self> {
         let entry_id = v64::decode(r)?;
         let mut entity_unique_id = v64::default();
 

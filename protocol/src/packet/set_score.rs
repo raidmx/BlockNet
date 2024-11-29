@@ -1,11 +1,11 @@
-use num_traits::{FromPrimitive, ToPrimitive};
-use derive::{Decode, Encode, Packet};
+use binary::{w32, Decode, Encode, Reader, Writer, Numeric};
+use derive::Packet;
 use crate::types::scoreboard::{ScoreboardAction, ScoreboardEntry};
 
 /// Sent by the server to send the contents of a scoreboard to the player. It may be used to either
 /// add, remove or edit entries on the scoreboard.
-#[derive(Debug, Clone, Encode, Decode, Packet)]
-pub struct SetScore {
+#[derive(Debug, Clone, Packet)]
+pub struct SetScore<'a> {
     /// The type of the action to execute upon the scoreboard with the entries that the packet has.
     /// If `action_type` is `Modify`, all entries will be added to the scoreboard if not yet
     /// present, or modified if already present. If set to `Remove`, all scoreboard entries set will
@@ -13,26 +13,31 @@ pub struct SetScore {
     pub action_type: ScoreboardAction,
     /// A list of all entries that the client should operate on. When modifying, it will add or
     /// modify all entries, whereas when removing, it will remove all entries.
-    pub entries: Vec<ScoreboardEntry>,
+    pub entries: Vec<ScoreboardEntry<'a>>,
 }
 
-impl PacketType for SetScore {
-    fn write(&self, writer: &mut Writer) {
-        writer.u8(self.action_type.to_u8().unwrap());
+impl<'a> Encode for SetScore<'a> {
+    fn encode(&self, w: &mut Writer) {
+        self.action_type.encode(w);
 
-        writer.var_u32(self.entries.len() as u32);
+        w32::from_usize(self.entries.len()).encode(w);
+
         self.entries
             .iter()
-            .for_each(|entry| entry.write(writer, self.action_type));
+            .for_each(|entry| entry.write(w, &self.action_type));
     }
+}
 
-    fn read(reader: &mut Reader) -> Self {
-        let action_type = ScoreboardAction::from_u8(reader.u8()).unwrap();
-        Self {
+impl<'a> Decode<'a> for SetScore<'a> {
+    fn decode(r: &mut Reader<'a>) -> Option<Self> {
+        let action_type = ScoreboardAction::decode(r)?;
+
+        let len = w32::decode(r)?.to_usize();
+        let entries: Vec<_> = (0..len).filter_map(|_| ScoreboardEntry::read(r, &action_type)).collect();
+
+        Some(Self {
             action_type,
-            entries: (0..reader.var_u32())
-                .map(|_| ScoreboardEntry::read(reader, action_type))
-                .collect(),
-        }
+            entries
+        })
     }
 }

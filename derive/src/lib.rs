@@ -8,7 +8,7 @@ mod encode;
 mod decode;
 mod packet;
 
-#[proc_macro_derive(Encode, attributes(encoding))]
+#[proc_macro_derive(Encode, attributes(encoding, skip))]
 pub fn derive_encode(item: StdTokenStream) -> StdTokenStream {
     match encode::derive_encode(item.into()) {
         Ok(tokens) => tokens.into(),
@@ -16,7 +16,7 @@ pub fn derive_encode(item: StdTokenStream) -> StdTokenStream {
     }
 }
 
-#[proc_macro_derive(Decode, attributes(encoding))]
+#[proc_macro_derive(Decode, attributes(encoding, skip))]
 pub fn derive_decode(item: StdTokenStream) -> StdTokenStream {
     match decode::derive_decode(item.into()) {
         Ok(tokens) => tokens.into(),
@@ -49,6 +49,16 @@ fn get_encoding_type(attrs: &Vec<Attribute>) -> Option<Expr> {
     }
 
     encoding_type
+}
+
+fn should_skip(attrs: &Vec<Attribute>) -> bool {
+    for attr in attrs.iter() {
+        if attr.path().is_ident("skip") {
+            return true;
+        }
+    }
+
+    false
 }
 
 fn pair_variants_with_discriminants(

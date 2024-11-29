@@ -1,8 +1,8 @@
-use num_derive::{FromPrimitive, ToPrimitive};
 use binary::Array;
 use derive::{Decode, Encode};
 
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, Encode, Decode)]
+#[encoding(type = v32)]
 pub enum Ability {
     Build,
     Mine,

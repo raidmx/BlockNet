@@ -1,7 +1,6 @@
 use num_derive::{FromPrimitive, ToPrimitive};
 use derive::{Decode, Encode};
 use uuid::Uuid;
-use binary::{Encode, Numeric};
 
 #[derive(Debug, Clone, FromPrimitive, ToPrimitive)]
 pub enum CommandArg {
@@ -38,9 +37,10 @@ pub enum CommandConstraint {
     HostPermissions,
 }
 
-#[derive(Debug, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[derive(Debug, Clone, Default,  Encode, Decode)]
 #[encoding(type = w32)]
 pub enum CommandOriginType {
+    #[default]
     Player,
     Block,
     MinecartBlock,
@@ -59,9 +59,10 @@ pub enum CommandOriginType {
     Executor,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[derive(Debug, Copy, Clone, PartialEq, Default, Encode, Decode)]
 #[encoding(type = u8)]
 pub enum CommandOutputType {
+    #[default]
     None,
     LastOutput,
     Silent,
@@ -118,7 +119,7 @@ pub enum CommandEnumConstraints {
     HostPermissions,
 }
 
-#[derive(Debug, Clone, Encode, Decode)]
+#[derive(Debug, Clone, Default, Encode, Decode)]
 pub struct CommandOrigin {
     pub origin: CommandOriginType,
     pub uuid: Uuid,

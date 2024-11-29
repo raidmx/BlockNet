@@ -1,5 +1,9 @@
 use derive::{Decode, Encode, Packet};
 
+// TODO: Compression
+#[derive(Debug, Clone, Encode, Decode)]
+pub struct Compression;
+
 /// Sent by the server to update a variety of network settings. These settings modify the way
 /// packets are sent over the network stack.
 #[derive(Debug, Clone, Encode, Decode, Packet)]

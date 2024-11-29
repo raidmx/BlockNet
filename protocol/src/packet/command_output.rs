@@ -1,4 +1,5 @@
 use binary::{w32, Encode, Decode, Writer, Reader};
+use derive::Packet;
 use crate::types::command::{CommandOrigin, CommandOutputMessage, CommandOutputType};
 
 /// Sent by the server to the client to send text as output of a command. Most servers do not use
@@ -7,7 +8,7 @@ use crate::types::command::{CommandOrigin, CommandOutputMessage, CommandOutputTy
 /// Text packet will not do what is expected: The message should go to the WS server, not to the
 /// client's chat. The CommandOutput packet will make sure the messages are relayed to the correct
 /// origin of the command request.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default, Packet)]
 pub struct CommandOutput<'a> {
     /// The data specifying the origin of the command. In other words, the source that the command
     /// request was from, such as the player itself or a WS server. The client forwards the messages

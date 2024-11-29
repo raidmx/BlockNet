@@ -3,17 +3,12 @@
 use bytes::{Buf, BufMut};
 use crate::{generate, impl_numeric_ordered, Decode, Encode, Reader, Variant, Writer, Prefix, Numeric};
 
-generate!(VarI32, <>, i32);
-generate!(VarU32, <>, u32);
-generate!(VarI64, <>, i64);
-generate!(VarU64, <>, u64);
+generate!(v32, <>, i32);
+generate!(w32, <>, u32);
+generate!(v64, <>, i64);
+generate!(w64, <>, u64);
 
-pub type v32 = VarI32;
-pub type w32 = VarU32;
-pub type v64 = VarI64;
-pub type w64 = VarU64;
-
-impl Encode for VarI32 {
+impl Encode for v32 {
     fn encode(&self, w: &mut Writer) {
         let mut u = (**self as u32) << 1;
         if **self < 0 {
@@ -27,7 +22,7 @@ impl Encode for VarI32 {
     }
 }
 
-impl Decode<'_> for VarI32 {
+impl Decode<'_> for v32 {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
         let mut v: u32 = 0;
         for i in (0..35).step_by(7) {
@@ -47,7 +42,7 @@ impl Decode<'_> for VarI32 {
     }
 }
 
-impl Encode for VarU32 {
+impl Encode for w32 {
     fn encode(&self, w: &mut Writer) {
         let mut x = **self;
         while x >= 0x80 {
@@ -58,7 +53,7 @@ impl Encode for VarU32 {
     }
 }
 
-impl Decode<'_> for VarU32 {
+impl Decode<'_> for w32 {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
         let mut v: u32 = 0;
         for i in (0..35).step_by(7) {
@@ -77,7 +72,7 @@ impl Decode<'_> for VarU32 {
     }
 }
 
-impl Encode for VarI64 {
+impl Encode for v64 {
     fn encode(&self, w: &mut Writer) {
         let mut u = (**self as u64) << 1;
         if **self < 0 {
@@ -91,7 +86,7 @@ impl Encode for VarI64 {
     }
 }
 
-impl Decode<'_> for VarI64 {
+impl Decode<'_> for v64 {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
         let mut v: u64 = 0;
         for i in (0..70).step_by(7) {
@@ -111,7 +106,7 @@ impl Decode<'_> for VarI64 {
     }
 }
 
-impl Encode for VarU64 {
+impl Encode for w64 {
     fn encode(&self, w: &mut Writer) {
         let mut x = **self;
         while x >= 0x80 {
@@ -122,7 +117,7 @@ impl Encode for VarU64 {
     }
 }
 
-impl Decode<'_> for VarU64 {
+impl Decode<'_> for w64 {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
         let mut v: u64 = 0;
         for i in (0..70).step_by(7) {
@@ -141,7 +136,7 @@ impl Decode<'_> for VarU64 {
     }
 }
 
-impl_numeric_ordered!(VarI32, <>, i32);
-impl_numeric_ordered!(VarU32, <>, u32);
-impl_numeric_ordered!(VarI64, <>, i64);
-impl_numeric_ordered!(VarU64, <>, u64);
+impl_numeric_ordered!(v32, <>, i32);
+impl_numeric_ordered!(w32, <>, u32);
+impl_numeric_ordered!(v64, <>, i64);
+impl_numeric_ordered!(w64, <>, u64);

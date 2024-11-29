@@ -1,41 +1,46 @@
-use crate::types::IVec3;
-use num_traits::{FromPrimitive, ToPrimitive};
-
+use binary::{v32, Encode, EnumEncoder, EnumDecoder, Writer, Numeric, Decode, Reader};
+use derive::Packet;
+use crate::types::BlockPos;
 use crate::types::world::{Dimension, SubChunkEntry};
 
 /// Sends data about multiple sub-chunks around a center point.
-#[derive(Debug, Clone)]
-pub struct SubChunk {
+#[derive(Debug, Clone, Default, Packet)]
+pub struct SubChunk<'a> {
     /// Whether client chunk caching is enabled or not.
     pub cache_enabled: bool,
     /// The dimension the sub-chunks are in.
     pub dimension: Dimension,
     /// An absolute sub-chunk center point that every SubChunkRequest uses as a reference.
-    pub position: IVec3,
+    pub position: BlockPos,
     /// Sub-chunk entries relative to the center point.
-    pub sub_chunk_entries: Vec<SubChunkEntry>,
+    pub sub_chunk_entries: Vec<SubChunkEntry<'a>>,
 }
 
-impl PacketType for SubChunk {
-    fn write(&self, writer: &mut Writer) {
-        writer.bool(self.cache_enabled);
-        writer.var_i32(self.dimension.to_i32().unwrap());
-        writer.block_pos(self.position);
-        writer.u32(self.sub_chunk_entries.len() as u32);
+impl<'a> Encode for SubChunk<'a> {
+    fn encode(&self, w: &mut Writer) {
+        self.cache_enabled.encode(w);
+        Dimension::write::<v32>(&self.dimension, w);
+        self.position.encode(w);
+
+        u32::from_usize(self.sub_chunk_entries.len()).encode(w);
         self.sub_chunk_entries
             .iter()
-            .for_each(|entry| entry.write(writer, self.cache_enabled));
+            .for_each(|entry| entry.write(w, self.cache_enabled));
     }
+}
 
-    fn read(reader: &mut Reader) -> Self {
-        let cache_enabled = reader.bool();
-        Self {
-            cache_enabled,
-            dimension: Dimension::from_i32(reader.var_i32()).unwrap(),
-            position: reader.block_pos(),
-            sub_chunk_entries: (0..reader.u32())
-                .map(|_| SubChunkEntry::read(reader, cache_enabled))
-                .collect(),
-        }
+impl<'a> Decode<'a> for SubChunk<'a> {
+    fn decode(r: &mut Reader<'a>) -> Option<Self> {
+        let mut pk = Self {
+            cache_enabled: bool::decode(r)?,
+            dimension: Dimension::read::<v32>(r)?,
+            position: BlockPos::decode(r)?,
+            ..Default::default()
+        };
+
+        let len = u32::decode(r)?.to_usize();
+        pk.sub_chunk_entries = (0..len).filter_map(|_| SubChunkEntry::read(r, pk.cache_enabled)).collect();
+
+        Some(pk)
     }
 }

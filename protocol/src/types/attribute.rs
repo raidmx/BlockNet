@@ -22,7 +22,7 @@ pub enum AttributeModifierOperation {
     Cap,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Encode, Decode)]
 pub struct AttributeValue<'a> {
     pub name: &'a str,
     pub min: f32,

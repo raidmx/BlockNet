@@ -1,5 +1,5 @@
 use bytes::{Buf, BufMut};
-use crate::{generate, Decode, Encode, Numeric, Prefix, Reader, VarU32, Writer};
+use crate::{generate, w32, Decode, Encode, Numeric, Prefix, Reader, Writer};
 
 generate!(RefString, <P: Prefix>, &'a str, 'a);
 generate!(CString, <P: Prefix>, String);
@@ -54,14 +54,14 @@ impl<P: Prefix> Decode<'_> for CString<P> {
 
 impl Encode for str {
     fn encode(&self, w: &mut Writer) {
-        VarU32::from_usize(self.len()).encode(w);
+        w32::from_usize(self.len()).encode(w);
         w.put_slice(self.as_ref());
     }
 }
 
 impl<'a> Decode<'a> for &'a str {
     fn decode(r: &mut Reader<'a>) -> Option<Self> {
-        let len = VarU32::decode(r)?.to_usize();
+        let len = w32::decode(r)?.to_usize();
         if r.remaining() < len {
             return None;
         }

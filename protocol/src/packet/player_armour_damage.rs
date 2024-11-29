@@ -3,7 +3,7 @@ use derive::Packet;
 
 /// Sent by the server to damage the armour of a player. It is a very efficient packet, but
 /// generally it's much easier to just send a slot update for the damaged armour.
-#[derive(Debug, Clone, Packet)]
+#[derive(Debug, Clone, Default, Packet)]
 pub struct PlayerArmourDamage {
     /// A bitset of 4 bits that indicate which pieces of armour need to have damage dealt to them.
     /// The first bit, when toggled, is for a helmet, the second for the chestplate, the third for

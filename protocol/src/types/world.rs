@@ -40,9 +40,10 @@ pub enum Difficulty {
     Hard,
 }
 
-#[derive(Debug, Copy, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
+#[derive(Debug, Copy, Default, Clone, FromPrimitive, ToPrimitive, Encode, Decode)]
 #[encoding(type = w32)]
 pub enum Dimension {
+    #[default]
     Overworld,
     Nether,
     End,
@@ -133,16 +134,16 @@ pub struct EntityLink {
 }
 
 #[derive(Debug, Clone)]
-pub struct SubChunkEntry {
+pub struct SubChunkEntry<'a> {
     pub offset: SubChunkOffset,
     pub result: SubChunkResult,
-    pub raw_payload: Bytes,
+    pub raw_payload: &'a [u8],
     pub height_map_type: HeightMapType,
     pub height_map_data: [i8; 256],
     pub blob_hash: u64,
 }
 
-impl SubChunkEntry {
+impl<'a> SubChunkEntry<'a> {
     pub fn write(&self, w: &mut Writer, cache_enabled: bool) {
         self.offset.encode(w);
         self.result.encode(w);
@@ -162,18 +163,18 @@ impl SubChunkEntry {
         }
     }
 
-    pub fn read(r: &mut Reader, cache_enabled: bool) -> Option<Self> {
+    pub fn read(r: &mut Reader<'a>, cache_enabled: bool) -> Option<Self> {
         let mut entry = Self {
             offset: SubChunkOffset::decode(r)?,
             result: SubChunkResult::decode(r)?,
-            raw_payload: Bytes::default(),
+            raw_payload: &r[..0],
             height_map_type: HeightMapType::None,
             height_map_data: [0; 256],
             blob_hash: 0,
         };
 
         if entry.result != SubChunkResult::SuccessAllAir || cache_enabled {
-            entry.raw_payload = Bytes::decode(r)?;
+            entry.raw_payload = <&'a [u8]>::decode(r)?;
         }
 
         entry.height_map_type = HeightMapType::decode(r)?;

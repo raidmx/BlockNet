@@ -1,6 +1,6 @@
 use std::mem::MaybeUninit;
 use bytes::{Buf, BufMut, Bytes, BytesMut};
-use crate::{generate, Decode, Encode, Numeric, Prefix, Reader, VarU32, Writer};
+use crate::{generate, Decode, Encode, Numeric, Prefix, Reader, w32, Writer};
 
 generate!(Array, <P: Prefix, T: Encode>, Vec<T>);
 generate!(RefBytes, <P: Prefix>, &'a [u8], 'a);
@@ -56,7 +56,7 @@ impl<'a, T: Decode<'a>, const N: usize> Decode<'a> for [T; N] {
 
 impl<T: Encode> Encode for [T] {
     fn encode(&self, w: &mut Writer) {
-        VarU32::from_usize(self.len()).encode(w);
+        w32::from_usize(self.len()).encode(w);
 
         for item in self {
             item.encode(w);
@@ -72,7 +72,7 @@ impl<T: Encode> Encode for Vec<T> {
 
 impl<'a, T: Decode<'a>> Decode<'a> for Vec<T> {
     fn decode(r: &mut Reader<'a>) -> Option<Self> {
-        let len: usize = VarU32::decode(r)?.to_usize();
+        let len: usize = w32::decode(r)?.to_usize();
 
         let data = (0..len).map(|_| T::decode(r)).collect::<Option<_>>()?;
         Some(data)
@@ -99,14 +99,17 @@ impl<'a, P: Prefix> Decode<'a> for RefBytes<'a, P> {
 
 impl Encode for BytesMut {
     fn encode(&self, w: &mut Writer) {
-        VarU32::from_usize(self.len()).encode(w);
+        w32::from_usize(self.len()).encode(w);
         w.put_slice(self.as_ref());
     }
 }
 
 impl Decode<'_> for BytesMut {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
-        let len = VarU32::decode(r)?.to_usize();
+        let len = w32::decode(r)?.to_usize();
+        if r.remaining() < len {
+            return None;
+        }
 
         let mut bytes = BytesMut::zeroed(len);
         r.copy_to_slice(&mut bytes);
@@ -117,7 +120,7 @@ impl Decode<'_> for BytesMut {
 
 impl Encode for Bytes {
     fn encode(&self, w: &mut Writer) {
-        VarU32::from_usize(self.len()).encode(w);
+        w32::from_usize(self.len()).encode(w);
         w.put_slice(self.as_ref());
     }
 }
@@ -125,5 +128,16 @@ impl Encode for Bytes {
 impl Decode<'_> for Bytes {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
         Some(BytesMut::decode(r)?.into())
+    }
+}
+
+impl<'a> Decode<'a> for &'a[u8] {
+    fn decode(r: &mut Reader<'a>) -> Option<Self> {
+        let len = w32::decode(r)?.to_usize();
+        if r.remaining() < len {
+            return None;
+        }
+
+        Some(&r[..len])
     }
 }
