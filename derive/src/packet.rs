@@ -37,6 +37,19 @@ pub(super) fn derive_packet(item: TokenStream) -> Result<TokenStream> {
             fn id(&self) -> crate::packet::PacketId {
                 crate::packet::PacketId::#name
             }
+
+            fn write(&self, w: &mut binary::Writer) {
+                use binary::*;
+
+                self.id().encode(w);
+                self.encode(w);
+            }
+
+            fn read(r: &mut binary::Reader<#lifetime>) -> Option<Self> {
+                use binary::*;
+
+                Self::decode(r)
+            }
         }
     })
 }

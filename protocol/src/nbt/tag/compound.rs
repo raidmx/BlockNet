@@ -1,8 +1,8 @@
 use std::collections::HashMap;
-use binary::generate;
 use super::Tag;
 
-generate!(Compound, <>, HashMap<String, Tag<'a>>, 'a);
+/// Compound represents a heterogeneous collection of objects indexed by string keys.
+pub type Compound<'a> = HashMap<&'a str, Tag<'a>>;
 
 /*
     Creates and returns a Compound Tag. Provided below is an example use case.
@@ -10,22 +10,23 @@ generate!(Compound, <>, HashMap<String, Tag<'a>>, 'a);
     # Example
 
     ```
-    let compound = compound![
+    let compound = compound! {
         "byte" => 120_i8,
-        "map" => compound!(
+        "map" => compound! {
             "integer" => 100_i32,
             "string" => "hello world"
-        )
-    ];
+        }
+    };
     ```
 */
+
 #[macro_export]
 macro_rules! compound {
     ($($key:expr => $value:expr),*) => {{
-        let mut map = Compound::new();
+        let mut compound = Compound::new();
         $(
-            map.insert($key, $value.into());
+            compound.insert($key, $value.into());
         )*
-        Tag::Compound(map)
+        compound
     }};
 }

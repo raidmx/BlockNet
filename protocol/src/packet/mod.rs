@@ -401,7 +401,7 @@ pub use update_sub_chunk_blocks::*;
 pub use update_trade::*;
 
 use derive::{Decode, Encode};
-use binary::{Decode, Encode};
+use binary::{Decode, Encode, Reader, Writer};
 
 #[derive(Debug, Clone, Copy, Encode, Decode, PartialEq)]
 #[encoding(type = w32)]
@@ -609,4 +609,6 @@ pub enum PacketId {
 
 pub trait Packet<'a> : Encode + Decode<'a> {
     fn id(&self) -> PacketId;
+    fn write(&self, w: &mut Writer);
+    fn read(r: &mut Reader<'a>) -> Option<Self>;
 }

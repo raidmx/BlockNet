@@ -3,8 +3,8 @@ use derive::{Decode, Encode, Packet};
 use crate::types::Magic;
 
 #[derive(Debug, Encode, Decode, Packet)]
-pub struct UnconnectedPing {
-    pub ping_time: b64,
+pub struct IncompatibleProtocol {
+    pub protocol: u8,
     pub magic: Magic,
-    pub client_guid: b64
+    pub guid: b64
 }

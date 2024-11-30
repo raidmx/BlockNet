@@ -67,7 +67,11 @@ impl Encode for SocketAddr {
         match self.ip() {
             IpAddr::V4(addr) => {
                 4_u8.encode(w);
-                addr.octets().encode(w);
+
+                let octets = addr.octets();
+                let octets = [!octets[0], !octets[1], !octets[2], !octets[3]];
+
+                octets.encode(w);
                 b16::new(self.port() as i16).encode(w);
             },
             IpAddr::V6(addr) => {
@@ -88,6 +92,8 @@ impl Decode<'_> for SocketAddr {
         match u8::decode(r)? {
             4 => {
                 let octets = <[u8; 4]>::decode(r)?;
+                let octets = [!octets[0], !octets[1], !octets[2], !octets[3]];
+
                 let port = b16::decode(r)?.value() as u16;
 
                 let addr = SocketAddr::new(IpAddr::V4(octets.into()), port);

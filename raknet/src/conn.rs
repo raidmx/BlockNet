@@ -1,10 +1,12 @@
 use std::net::SocketAddr;
+use std::sync::Arc;
+use bytes::BytesMut;
 use tokio::net::UdpSocket;
 
 pub struct RakConn {
     pub local_addr: SocketAddr,
     pub remote_addr: SocketAddr,
-    pub socket: UdpSocket
+    pub socket: Arc<UdpSocket>
 }
 
 impl RakConn {
@@ -27,10 +29,34 @@ impl RakConn {
         let udp_sock: std::net::UdpSocket = udp_sock.into();
         udp_sock.connect(remote_addr).expect("Cannot connect the UdpSocket to remote addr");
 
+        let socket: UdpSocket = udp_sock.try_into().unwrap();
+
         Self {
             local_addr,
             remote_addr,
-            socket: udp_sock.try_into().unwrap()
+            socket: socket.into()
         }
+    }
+
+    pub fn start(&self) {
+        let remote_addr = self.remote_addr.clone();
+        let socket = self.socket.clone();
+
+        tokio::spawn(async move {
+            let mut incm = BytesMut::new();
+            let mut outg = BytesMut::new();
+
+            loop {
+                incm.resize(1500, 0);
+                outg.clear();
+
+                let len = match socket.recv(&mut incm).await {
+                    Ok(v) => v,
+                    Err(_) => continue
+                };
+                
+                println!("Received {} bytes from {}", len, remote_addr)
+            }
+        });
     }
 }
