@@ -33,7 +33,7 @@ macro_rules! generate {
                 }
             }
 
-            pub fn get(self) -> $type {
+            pub fn value(self) -> $type {
                 self.val
             }
         }
@@ -72,7 +72,7 @@ macro_rules! generate {
 
         impl<$($lifetime,)? $($gen: $gen_constraint),*> From<$name<$($lifetime,)? $($gen),*>> for $type {
             fn from(value: $name<$($lifetime,)? $($gen),*>) -> $type {
-                value.get()
+                value.value()
             }
         }
     };

@@ -25,7 +25,7 @@ pub struct LittleEndian;
 
 impl Encoding for NetworkLittleEndian {
     fn read_int(r: &mut Reader) -> Option<i32> {
-        Some(v32::decode(r)?.get())
+        Some(v32::decode(r)?.value())
     }
 
     fn write_int(w: &mut Writer, val: i32) {
@@ -33,7 +33,7 @@ impl Encoding for NetworkLittleEndian {
     }
 
     fn read_long(r: &mut Reader) -> Option<i64> {
-        Some(v64::decode(r)?.get())
+        Some(v64::decode(r)?.value())
     }
 
     fn write_long(w: &mut Writer, val: i64) {
@@ -41,7 +41,7 @@ impl Encoding for NetworkLittleEndian {
     }
 
     fn read_str<'a>(r: &mut Reader<'a>) -> Option<&'a str> {
-        Some(RefString::<'a, w32>::decode(r)?.get())
+        Some(RefString::<'a, w32>::decode(r)?.value())
     }
 
     fn write_str(w: &mut Writer, val: &str) {
@@ -67,7 +67,7 @@ impl Encoding for LittleEndian {
     }
 
     fn read_str<'a>(r: &mut Reader<'a>) -> Option<&'a str> {
-        Some(RefString::<'a, u16>::decode(r)?.get())
+        Some(RefString::<'a, u16>::decode(r)?.value())
     }
 
     fn write_str(w: &mut Writer, val: &str) {

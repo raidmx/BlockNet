@@ -1,2 +1,2 @@
 [workspace]
-members = [ "binary", "derive", "protocol"]
+members = [ "binary", "derive", "protocol", "raknet"]

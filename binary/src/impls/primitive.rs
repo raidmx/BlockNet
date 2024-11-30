@@ -159,7 +159,7 @@ macro_rules! impl_numeric_ordered {
             }
 
             fn to_usize(self) -> usize {
-                self.get() as usize
+                self.value() as usize
             }
             
             fn from_isize(value: isize) -> Self {
@@ -167,7 +167,7 @@ macro_rules! impl_numeric_ordered {
             }
 
             fn to_isize(self) -> isize {
-                self.get() as isize
+                self.value() as isize
             }
         }
         

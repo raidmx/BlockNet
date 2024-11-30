@@ -100,9 +100,9 @@ impl Encode for BlockPos {
 impl Decode<'_> for BlockPos {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
         Some(Self {
-            x: v32::decode(r)?.get(),
-            y: v32::decode(r)?.get(),
-            z: v32::decode(r)?.get()
+            x: v32::decode(r)?.value(),
+            y: v32::decode(r)?.value(),
+            z: v32::decode(r)?.value()
         }.into())
     }
 }
@@ -118,9 +118,9 @@ impl Encode for UBlockPos {
 impl Decode<'_> for UBlockPos {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
         Some(Self {
-            x: v32::decode(r)?.get(),
-            y: w32::decode(r)?.get() as i32,
-            z: v32::decode(r)?.get()
+            x: v32::decode(r)?.value(),
+            y: w32::decode(r)?.value() as i32,
+            z: v32::decode(r)?.value()
         }.into())
     }
 }

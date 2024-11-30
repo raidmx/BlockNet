@@ -24,9 +24,9 @@ impl<'a> Encode for EntityMetadata<'a> {
 
 impl<'a> Decode<'a> for EntityMetadata<'a> {
     fn decode(r: &mut Reader<'a>) -> Option<Self> {
-        let len = w32::decode(r)?.get() as usize;
+        let len = w32::decode(r)?.value() as usize;
         let data = (0..len).map(|_| {
-            let key = w32::decode(r)?.get();
+            let key = w32::decode(r)?.value();
             let value = EntityDataEntry::decode(r)?;
 
             Some((key, value))

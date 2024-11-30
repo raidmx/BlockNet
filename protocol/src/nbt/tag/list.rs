@@ -8,12 +8,12 @@ use crate::nbt::{Tag, TagId};
 /// List represents a collection of Tag objects. It is a homogenous collection of Tag objects, in other
 /// words, objects of same type only.
 #[derive(Default, PartialEq, Clone)]
-pub struct ListTag<'a> {
+pub struct List<'a> {
     id: TagId,
     list: Vec<Tag<'a>>,
 }
 
-impl<'a> ListTag<'a> {
+impl<'a> List<'a> {
     /// Creates and returns a new List object with the provided type of objects
     pub fn new(id: TagId) -> Self {
         Self {
@@ -79,19 +79,19 @@ impl<'a> ListTag<'a> {
 #[macro_export]
 macro_rules! list {
     ($TAG_ID:expr, $($TAGS:expr),*) => {{
-        let mut list = ListTag::new($TAG_ID);
+        let mut list = List::new($TAG_ID);
         $(list.list.push($TAGS.into());)*
         Tag::List(list)
     }};
 }
 
-impl<'a> Debug for ListTag<'a> {
+impl<'a> Debug for List<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.list)
     }
 }
 
-impl<'a> Deref for ListTag<'a> {
+impl<'a> Deref for List<'a> {
     type Target = Vec<Tag<'a>>;
 
     fn deref(&self) -> &Self::Target {
@@ -99,7 +99,7 @@ impl<'a> Deref for ListTag<'a> {
     }
 }
 
-impl<'a> DerefMut for ListTag<'a> {
+impl<'a> DerefMut for List<'a> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.list
     }

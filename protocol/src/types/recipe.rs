@@ -170,7 +170,7 @@ impl Encode for ItemType {
 
 impl Decode<'_> for ItemType {
     fn decode(r: &mut Reader<'_>) -> Option<Self> {
-        let value = v32::decode(r)?.get();
+        let value = v32::decode(r)?.value();
         
         Some(Self {
             network_id: value << 16,

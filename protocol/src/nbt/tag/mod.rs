@@ -102,8 +102,8 @@ generate_tags!(
     Double => f64, as_double, as_mut_double,
     ByteArray => &'a [i8], as_byte_array, as_mut_byte_array,
     String => &'a str, as_string, as_mut_string,
-    List => ListTag<'a>, as_list, as_mut_list,
-    Compound => CompoundTag<'a>, as_compound, as_mut_compound,
+    List => List<'a>, as_list, as_mut_list,
+    Compound => Compound<'a>, as_compound, as_mut_compound,
     IntArray => Vec<i32>, as_int_array, as_mut_int_array,
     LongArray => Vec<i64>, as_long_array, as_mut_long_array
 );

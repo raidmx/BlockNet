@@ -61,7 +61,7 @@ impl Encode for VarRGBA {
 
 impl Decode<'_> for VarRGBA {
     fn decode(r: &mut Reader) -> Option<Self> {
-        let value = w32::decode(r)?.get();
+        let value = w32::decode(r)?.value();
         Some(Self {
             r: value as u8,
             g: (value >> 8) as u8,

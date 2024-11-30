@@ -71,7 +71,7 @@ impl Decode<'_> for LevelChunk {
             ..Default::default()
         };
 
-        let sub_chunk_count = w32::decode(r)?.get();
+        let sub_chunk_count = w32::decode(r)?.value();
 
         if sub_chunk_count == u32::MAX {
             pk.sub_chunk_request_mode = SubChunkRequestMode::Limitless;

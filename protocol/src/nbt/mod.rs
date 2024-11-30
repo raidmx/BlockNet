@@ -1,6 +1,7 @@
 pub mod encoding;
 pub mod tag;
 
+use std::collections::HashMap;
 pub use encoding::*;
 pub use tag::*;
 
@@ -8,8 +9,8 @@ use bytes::BufMut;
 use binary::{generate, Decode, Encode, Reader, Writer};
 
 generate!(NBT, <E: Encoding>, Tag<'a>, 'a);
-generate!(Compound, <E: Encoding>, CompoundTag<'a>, 'a);
-generate!(List, <E: Encoding>, ListTag<'a>, 'a);
+generate!(CompoundTag, <E: Encoding>, Compound<'a>, 'a);
+generate!(ListTag, <E: Encoding>, List<'a>, 'a);
 
 impl<'a, E: Encoding> Encode for NBT<'a, E> {
     fn encode(&self, w: &mut Writer) {
@@ -27,8 +28,11 @@ impl<'a, E: Encoding> Decode<'a> for NBT<'a, E> {
     }
 }
 
-impl<'a, E:Encoding> Encode for Compound<'a, E> {
+impl<'a, E:Encoding> Encode for CompoundTag<'a, E> {
     fn encode(&self, w: &mut Writer) {
+        encode_tag_id(TagId::Compound, w);
+        E::write_str(w, "");
+
         for (name, item) in self.iter() {
             encode_tag_id(item.id(), w); // TypeID of the NBT object
             E::write_str(w, name.as_str()); // Name of the NBT object
@@ -39,9 +43,12 @@ impl<'a, E:Encoding> Encode for Compound<'a, E> {
     }
 }
 
-impl<'a, E: Encoding> Decode<'a> for Compound<'a, E> {
+impl<'a, E: Encoding> Decode<'a> for CompoundTag<'a, E> {
     fn decode(r: &mut Reader<'a>) -> Option<Self> {
-        let mut compound = CompoundTag::new();
+        decode_tag_id(r)?;
+        E::read_str(r)?;
+
+        let mut compound = Compound::new(HashMap::new());
 
         loop {
             let tag = decode_tag_id(r)?;
@@ -54,7 +61,7 @@ impl<'a, E: Encoding> Decode<'a> for Compound<'a, E> {
             let name = E::read_str(r)?.to_owned();
 
             if let Some(value) = decode::<E>(tag, r) {
-                compound.put(&name, value);
+                compound.insert(name, value);
             } else {
                 return None;
             }
@@ -64,8 +71,11 @@ impl<'a, E: Encoding> Decode<'a> for Compound<'a, E> {
     }
 }
 
-impl<'a, E: Encoding> Encode for List<'a, E> {
+impl<'a, E: Encoding> Encode for ListTag<'a, E> {
     fn encode(&self, w: &mut Writer) {
+        encode_tag_id(TagId::List, w);
+        E::write_str(w, "");
+
         encode_tag_id(self.list_type(), w);
         E::write_int(w, self.len() as i32);
 
@@ -75,8 +85,11 @@ impl<'a, E: Encoding> Encode for List<'a, E> {
     }
 }
 
-impl<'a, E: Encoding> Decode<'a> for List<'a, E> {
+impl<'a, E: Encoding> Decode<'a> for ListTag<'a, E> {
     fn decode(r: &mut Reader<'a>) -> Option<Self> {
+        decode_tag_id(r)?;
+        E::read_str(r)?;
+
         let list_type = decode_tag_id(r)?;
         let mut len = E::read_int(r)?;
 
@@ -84,7 +97,7 @@ impl<'a, E: Encoding> Decode<'a> for List<'a, E> {
             len = 0;
         }
 
-        let mut list = ListTag::with_capacity(list_type, len as usize);
+        let mut list = List::with_capacity(list_type, len as usize);
 
         for _ in 0..len {
             if let Some(element) = decode::<E>(list_type, r) {
@@ -196,7 +209,7 @@ pub fn decode<'a, E: Encoding>(id: TagId, r: &mut Reader<'a>) -> Option<Tag<'a>>
                 len = 0;
             }
 
-            let mut list = ListTag::with_capacity(list_type, len as usize);
+            let mut list = List::with_capacity(list_type, len as usize);
 
             for _ in 0..len {
                 if let Some(element) = decode::<E>(list_type, r) {
@@ -209,7 +222,7 @@ pub fn decode<'a, E: Encoding>(id: TagId, r: &mut Reader<'a>) -> Option<Tag<'a>>
             Some(Tag::List(list))
         }
         TagId::Compound => {
-            let mut compound = CompoundTag::new();
+            let mut compound = Compound::new(HashMap::new());
 
             loop {
                 let tag = decode_tag_id(r)?;
@@ -222,7 +235,7 @@ pub fn decode<'a, E: Encoding>(id: TagId, r: &mut Reader<'a>) -> Option<Tag<'a>>
                 let name = E::read_str(r)?.to_owned();
 
                 if let Some(value) = decode::<E>(tag, r) {
-                    compound.put(&name, value);
+                    compound.insert(name, value);
                 } else {
                     return None;
                 }
